@@ -8,12 +8,14 @@ class Settings(BaseSettings):
     # Secret Keys (Loaded from environment, DO NOT hardcode)
     OPENAI_API_KEY: str = ""
     BHASHINI_API_KEY: str = ""
+    GROQ_API_KEY: str = ""
     
     # Data Sources
     RAW_DATA_DRIVE_URL: str = ""
     
     # Database URLs
     QDRANT_URL: str = "http://localhost:6333"
+    QDRANT_API_KEY: str = ""
     NEO4J_URI: str = "bolt://localhost:7687"
     NEO4J_USER: str = "neo4j"
     NEO4J_PASS: str = "ipsakti_secret_password"
