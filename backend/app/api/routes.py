@@ -13,7 +13,7 @@ import io
 import os
 
 router = APIRouter()
-groq_client = Groq(api_key=settings.GROQ_API_KEY)
+groq_client = Groq(api_key=settings.GROQ_API_KEY or "dummy_key")
 
 class AskRequest(BaseModel):
     query: str
