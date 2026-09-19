@@ -21,3 +21,4 @@ langchain-groq
 groq
 pytesseract
 fpdf2
+python-multipart
