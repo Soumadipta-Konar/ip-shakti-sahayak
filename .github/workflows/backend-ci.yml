@@ -42,5 +42,6 @@ jobs:
         # Dummy variables for tests
         ENVIRONMENT: test
         API_KEY: dummy_key
+        GROQ_API_KEY: dummy_key
       run: |
         cd backend && pytest tests/ -v
