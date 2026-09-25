@@ -1,15 +1,9 @@
 import { AskResponse, ClassificationResult, ChatMessage, Jurisdiction, StatutoryCitation } from './types';
 
-// Strict Environment Variable - No silent localhost fallback
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+// Environment Variable with resilient fallback
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 function getApiBase(): string {
-  if (!API_BASE) {
-    throw new Error(
-      'NEXT_PUBLIC_API_URL is not defined in environment variables. ' +
-      'Please ensure frontend/.env.local contains NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1'
-    );
-  }
   return API_BASE;
 }
 
