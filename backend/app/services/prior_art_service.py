@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 HERBAL_DATABASE: Dict[str, Dict[str, Any]] = {
     "turmeric": {
         "botanical_name": "Curcuma longa L.",
-        "sanskrit_name": "Haridra (हरिद्रा)",
+        "sanskrit_name": "Haridra (Curcuma longa)",
         "classical_citations": [
             "Charaka Samhita, Sutrasthana 4:16 (Kushthaghna Mahakashaya)",
             "Sushruta Samhita, Sutrasthana 38:27 (Haridradi Gana)",
@@ -24,7 +24,7 @@ HERBAL_DATABASE: Dict[str, Dict[str, Any]] = {
     },
     "neem": {
         "botanical_name": "Azadirachta indica A. Juss.",
-        "sanskrit_name": "Nimba (निम्ब)",
+        "sanskrit_name": "Nimba (Azadirachta indica)",
         "classical_citations": [
             "Charaka Samhita, Sutrasthana 27:108",
             "Sushruta Samhita, Chikitsasthana 9:64 (Nimbadi Taila)",
@@ -36,7 +36,7 @@ HERBAL_DATABASE: Dict[str, Dict[str, Any]] = {
     },
     "ashwagandha": {
         "botanical_name": "Withania somnifera (L.) Dunal",
-        "sanskrit_name": "Ashwagandha (अश्वगन्धा)",
+        "sanskrit_name": "Ashwagandha (Withania somnifera)",
         "classical_citations": [
             "Charaka Samhita, Chikitsasthana 1:2 (Rasayana Adhyaya)",
             "Bhavaprakasha Nighantu, Guduchyadi Varga 189",
@@ -48,7 +48,7 @@ HERBAL_DATABASE: Dict[str, Dict[str, Any]] = {
     },
     "tulsi": {
         "botanical_name": "Ocimum sanctum L. / Ocimum tenuiflorum",
-        "sanskrit_name": "Tulasi (तुलसी)",
+        "sanskrit_name": "Tulasi (Ocimum sanctum)",
         "classical_citations": [
             "Charaka Samhita, Chikitsasthana 3:210 (Jvarachikitsa)",
             "Sushruta Samhita, Sutrasthana 38:18 (Surasadi Gana)",
@@ -60,7 +60,7 @@ HERBAL_DATABASE: Dict[str, Dict[str, Any]] = {
     },
     "ginger": {
         "botanical_name": "Zingiber officinale Roscoe",
-        "sanskrit_name": "Shunthi (शुण्ठी) / Ardraka",
+        "sanskrit_name": "Shunthi (Zingiber officinale)",
         "classical_citations": [
             "Charaka Samhita, Sutrasthana 4:10 (Triptighna Mahakashaya)",
             "Ashtanga Hridaya, Sutrasthana 6:154",
@@ -72,7 +72,7 @@ HERBAL_DATABASE: Dict[str, Dict[str, Any]] = {
     },
     "amla": {
         "botanical_name": "Phyllanthus emblica L. (Emblica officinalis)",
-        "sanskrit_name": "Amalaki (आमलकी)",
+        "sanskrit_name": "Amalaki (Phyllanthus emblica)",
         "classical_citations": [
             "Charaka Samhita, Chikitsasthana 1:1:30 (Chyavanaprasha formulation)",
             "Sushruta Samhita, Sutrasthana 46:142",
@@ -84,7 +84,7 @@ HERBAL_DATABASE: Dict[str, Dict[str, Any]] = {
     },
     "guggulu": {
         "botanical_name": "Commiphora mukul (Stocks) Hook. / Commiphora wightii",
-        "sanskrit_name": "Guggulu (गुग्गुलु)",
+        "sanskrit_name": "Guggulu (Commiphora mukul)",
         "classical_citations": [
             "Charaka Samhita, Chikitsasthana 28:182 (Vatavyadhi)",
             "Sushruta Samhita, Sutrasthana 38:43 (Eladi Gana)",
@@ -96,7 +96,7 @@ HERBAL_DATABASE: Dict[str, Dict[str, Any]] = {
     },
     "brahmi": {
         "botanical_name": "Bacopa monnieri (L.) Wettst.",
-        "sanskrit_name": "Brahmi (ब्राह्मी)",
+        "sanskrit_name": "Brahmi (Bacopa monnieri)",
         "classical_citations": [
             "Charaka Samhita, Chikitsasthana 10:64 (Unmada Chikitsa)",
             "Ayurvedic Pharmacopoeia of India (API) Part I, Vol. II, Monograph 11"
@@ -107,7 +107,7 @@ HERBAL_DATABASE: Dict[str, Dict[str, Any]] = {
     },
     "giloy": {
         "botanical_name": "Tinospora cordifolia (Willd.) Miers",
-        "sanskrit_name": "Guduchi (गुडूची)",
+        "sanskrit_name": "Guduchi (Tinospora cordifolia)",
         "classical_citations": [
             "Charaka Samhita, Sutrasthana 4:18 (Vayasthapana Mahakashaya)",
             "Ayurvedic Pharmacopoeia of India (API) Part I, Vol. I, Monograph 19"
@@ -191,7 +191,7 @@ class PriorArtService:
                     TKDLMatch(
                         ingredient=ing,
                         botanical_name=f"{ing.capitalize()} Botanical Specimen (API)",
-                        sanskrit_name=f"{ing.capitalize()} (संस्कृत संदर्भ)",
+                        sanskrit_name=f"{ing.capitalize()} (Botanical Specimen)",
                         classical_citations=[
                             "Ayurvedic Pharmacopoeia of India (API) Standard Monograph",
                             "Dravyaguna Vijnana Reference"

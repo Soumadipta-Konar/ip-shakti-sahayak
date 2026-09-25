@@ -318,8 +318,8 @@ export const FormulationWizard: React.FC = () => {
                 href="/"
                 className="px-5 py-2.5 rounded-xl bg-[#002147] hover:bg-[#001733] text-white text-xs font-bold shadow-sm flex items-center gap-2 transition-all"
               >
-                <MessageSquare className="w-4 h-4 text-emerald-400" />
-                <span>Proceed to Bhashini AI Copilot with this Case Dossier &rarr;</span>
+                <MessageSquare className="w-4 h-4 text-[#1d70b8]" />
+                <span>Proceed to Statutory AI Copilot with this Case Dossier &rarr;</span>
               </Link>
             </div>
           </div>

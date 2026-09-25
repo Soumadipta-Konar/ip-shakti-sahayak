@@ -138,7 +138,7 @@ export const PriorArtAnalyzer: React.FC = () => {
     const mockMatches: TKDLMatch[] = ingredients.map((ing) => ({
       ingredient: ing,
       botanical_name: ing === 'Turmeric' ? 'Curcuma longa L.' : ing === 'Ginger' ? 'Zingiber officinale' : 'Botanical Specimen (API)',
-      sanskrit_name: ing === 'Turmeric' ? 'Haridra (हरिद्रा)' : ing === 'Ginger' ? 'Sunthi (शुण्ठी)' : 'Oshadhi',
+      sanskrit_name: ing === 'Turmeric' ? 'Haridra (Curcuma longa)' : ing === 'Ginger' ? 'Sunthi (Zingiber officinale)' : 'Botanical Specimen',
       classical_citations: ['Charaka Samhita, Sutrasthana 4/16', 'Sushruta Samhita, Sutrasthana 38/27'],
       traditional_indications: ['Vranaropana (Wound healing)', 'Sothahara (Anti-inflammatory)'],
       tkdl_codes: ['TKDL-IN-CSIR-HL-0482'],

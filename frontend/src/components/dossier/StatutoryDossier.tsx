@@ -242,35 +242,28 @@ export const StatutoryDossier: React.FC = () => {
         <div className="bg-white rounded-2xl border border-slate-300 p-8 sm:p-12 shadow-md print:shadow-none print:border-none print:p-0 space-y-8 text-slate-900">
           {/* Government Official Masthead */}
           <div className="border-b-2 border-[#002147] pb-6 space-y-4">
-            {/* National Tricolor Top Line */}
-            <div className="h-1.5 w-full flex">
-              <div className="h-full flex-1 bg-[#FF9933]" />
-              <div className="h-full flex-1 bg-white border-y border-slate-200" />
-              <div className="h-full flex-1 bg-[#138808]" />
-            </div>
+            {/* UK GDS Enterprise Header Rule */}
+            <div className="h-1.5 w-full bg-[#0b0c0c]" />
 
             <div className="flex items-start justify-between gap-6 pt-2">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#002147] to-[#0A3D62] text-white flex items-center justify-center shadow-sm flex-shrink-0">
-                  <Scale className="w-7 h-7 text-[#FF9933]" />
+                <div className="w-12 h-12 bg-[#0b0c0c] text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                  <Scale className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">
-                      भारत सरकार &bull; Government of India
+                    <span className="text-[11px] font-bold text-[#505a5f] uppercase tracking-widest">
+                      IP-SAKTI ENTERPRISE INTELLIGENCE
                     </span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
-                      DPI 2.0 / GIGW 3.0
+                    <span className="gds-tag gds-tag-blue">
+                      STATUTORY AUDIT
                     </span>
                   </div>
-                  <h3 className="text-sm font-black text-[#002147] uppercase tracking-wide mt-0.5">
-                    National Intellectual Property & Statutory Copilot Portal
-                  </h3>
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-                    STATUTORY IPR & REGULATORY COMPLIANCE DOSSIER
+                  <h1 className="text-xl sm:text-2xl font-black text-[#0b0c0c] mt-1">
+                    STATUTORY IPR &amp; REGULATORY CLEARANCE DOSSIER
                   </h1>
-                  <p className="text-xs text-slate-500 font-medium">
-                    National Intellectual Property, BDA 2023 Benefit Sharing, &amp; Licensing Roadmap
+                  <p className="text-xs text-[#505a5f] font-medium">
+                    Pre-Filing Patentability Evaluation, BDA 2023 Benefit Sharing Liabilities &amp; TKDL Clearance Record
                   </p>
                 </div>
               </div>

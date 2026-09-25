@@ -309,7 +309,7 @@ def generate_answer_node(state: AgentState) -> Dict[str, Any]:
         "   ### 5. Strategic Prosecution Roadmap & Action Plan\n"
         "   (Provide step-by-step actionable advice: how to overcome Section 3(e) with Combination Index CI < 1.0, standardization under Rule 122-E, branding under Trade Marks Act 1999, packaging under Designs Act 2000, and PCT international filing)\n\n"
         f"Selected Jurisdiction: {jurisdiction}\n"
-        "Language: Respond clearly in professional English. (If language is not English, provide bilingual legal guidance).\n"
+        "Language: Respond strictly in authoritative, professional English. Do not output in Hindi or non-English script.\n"
     )
 
     user_prompt = (

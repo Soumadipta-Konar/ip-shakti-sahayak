@@ -66,7 +66,7 @@ interface AppState {
 export const useAppStore = create<AppState>((set, get) => ({
   jurisdiction: 'IN',
   setJurisdiction: (jurisdiction) => set({ jurisdiction }),
-  language: 'hi',
+  language: 'en',
   setLanguage: (language) => set({ language }),
   selectedCitation: null,
   setSelectedCitation: (selectedCitation) => set({ selectedCitation, isCitationDrawerOpen: !!selectedCitation }),
