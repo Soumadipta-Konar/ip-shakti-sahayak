@@ -19,7 +19,7 @@ export default function DossierPage() {
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 font-medium">Export Standard:</span>
           <span className="text-xs font-mono font-bold text-[#002147] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-            GIGW 3.0 &bull; Ministry of AYUSH Official Dossier Format
+            GIGW 3.0 &bull; National Statutory Compliance Dossier Format
           </span>
         </div>
       </div>

@@ -67,7 +67,7 @@ const CANONICAL_CITATIONS: StatutoryCitation[] = [
     act: 'Biological Diversity Act, 2002 (as amended 2023)',
     section: 'Section 7',
     description: 'Prior intimation to State Biodiversity Board and exemptions for codified Vaidyas.',
-    snippet: 'Commercial utilization requires intimation to SBB, but exempts registered AYUSH local practitioners.',
+    snippet: 'Commercial utilization requires intimation to SBB, but exempts registered Vaidyas and codified traditional healers.',
     url: 'http://nbaindia.org/',
     jurisdiction: 'IN',
     source: 'canonical'
@@ -78,7 +78,7 @@ const CANONICAL_CITATIONS: StatutoryCitation[] = [
     section: 'Rule 158-B',
     description: 'Proof of textual authority for classical Ayurvedic medicines versus P&P safety trials.',
     snippet: 'Requires manufacturing to strictly follow First Schedule classical authoritative texts for classical drug licensing.',
-    url: 'https://ayush.gov.in',
+    url: 'https://cdsco.gov.in',
     jurisdiction: 'IN',
     source: 'canonical'
   },

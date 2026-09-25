@@ -46,7 +46,7 @@ const STATUTORY_REGISTRY: Record<string, { act: string; section: string; snippet
     act: 'Drugs and Cosmetics Rules, 1945',
     section: 'Rule 158-B',
     snippet: 'Prescribes mandatory textual citations for classical Ayurvedic formulations vs safety literature and clinical trials for Patent-or-Proprietary (P&P) medicines.',
-    url: 'https://ayush.gov.in',
+    url: 'https://cdsco.gov.in',
   },
   '122-e': {
     act: 'Drugs and Cosmetics Rules, 1945',

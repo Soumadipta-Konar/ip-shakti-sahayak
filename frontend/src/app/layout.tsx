@@ -11,8 +11,8 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "IP-SAKTI Sahayak | Ministry of AYUSH (SIH 045)",
-  description: "Official National AI Statutory Copilot for Ayurvedic Intellectual Property, CSIR-TKDL Defense, and BDA 2023 ABS Compliance.",
+  title: "IP-SAKTI Sahayak | National AI Statutory Copilot",
+  description: "Official National AI Statutory Copilot for Intellectual Property, Patents Act 1970, CSIR-TKDL Prior-Art, and Biological Diversity Act 2023.",
 };
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-100 selection:text-blue-900`}>
+      <body className={`${inter.className} bg-[#f8fafc] text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-100 selection:text-blue-900`}>
         <QueryProvider>
           <div className="print:hidden">
             <GovtBanner />
@@ -40,12 +40,12 @@ export default function RootLayout({
           <footer className="border-t border-slate-200 py-6 text-xs text-slate-600 bg-white shadow-xs print:hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <span className="font-bold text-[#002147]">IP-SAKTI Sahayak</span>
+                <span className="font-bold text-slate-900">IP-SAKTI Sahayak</span>
                 <span className="text-slate-300">|</span>
-                <span>Ministry of AYUSH, Government of India &bull; SIH 045</span>
+                <span className="font-medium text-slate-600">Government of India &bull; Digital Public Infrastructure &bull; SIH 2024</span>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-slate-500 text-[11px]">
-                <span>GIGW 3.0 Compliant</span>
+                <span className="font-semibold text-emerald-700">DPI 2.0 / GIGW 3.0 Verified</span>
                 <span>&bull;</span>
                 <span>The Patents Act, 1970</span>
                 <span>&bull;</span>

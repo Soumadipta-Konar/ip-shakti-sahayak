@@ -3,17 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --background: #edf2f7;
+  --background: #f8fafc;
   --foreground: #0f172a;
   --govt-navy: #002147;
-  --govt-blue: #0b3d91;
+  --govt-blue: #1d4ed8;
   --accent-saffron: #ff9933;
   --accent-green: #138808;
   --accent-ashoka: #000080;
 }
 
 body {
-  background-color: #edf2f7;
+  background-color: #f8fafc;
   color: #0f172a;
   min-height: 100vh;
   font-feature-settings: "rlig" 1, "calt" 1;
@@ -21,77 +21,68 @@ body {
 }
 
 /* ==========================================================================
-   OFFICIAL GOVERNMENT OF INDIA (NIC / GIGW 3.0) FLAT ARCHITECTURAL SYSTEM
-   - Zero Drop Shadows across all features, cards, buttons and modules
-   - Sharp, rectangular borders (Zero border-radius)
-   - High-contrast institutional color palette
+   MODERN GOVERNMENT DIGITAL PUBLIC INFRASTRUCTURE (DPI 2.0) DESIGN SYSTEM
+   - Crisp Light Theme with Subtle Card Elevations
+   - Smooth Rounded Aesthetics (rounded-xl, rounded-2xl)
+   - Sovereign Color Accents (Navy, Saffron, Emerald)
    ========================================================================== */
 
-/* 1. Global Box-Shadow Neutralizer */
-*,
-*::before,
-*::after {
-  --tw-shadow: 0 0 #0000 !important;
-  --tw-shadow-colored: 0 0 #0000 !important;
-  box-shadow: none !important;
-}
-
-.shadow-xs,
-.shadow-sm,
-.shadow-md,
-.shadow-lg,
-.shadow-xl,
-.shadow-2xl,
-.shadow-2xs,
-.shadow {
-  box-shadow: none !important;
-}
-
-/* 2. Global Sharp Corner Enforcer (Rectangular Government Modules) */
-.rounded-3xl,
-.rounded-2xl,
-.rounded-xl,
-.rounded-lg,
-.rounded-md {
-  border-radius: 0px !important;
-}
-
-.rounded,
-.rounded-sm,
-.rounded-full {
-  border-radius: 2px !important;
-}
-
-/* 3. Official Government Surface Borders */
 .govt-card {
   background: #ffffff;
-  border: 1px solid #b0bec5;
-  box-shadow: none !important;
-  border-radius: 0px !important;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.govt-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
 }
 
 .govt-header {
-  background-color: #002147;
+  background: linear-gradient(135deg, #002147 0%, #0f3460 100%);
   color: #ffffff;
-  border-radius: 0px !important;
 }
 
 .glass-panel {
-  background: #ffffff;
-  border: 1px solid #b0bec5;
-  box-shadow: none !important;
-  border-radius: 0px !important;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .glass-panel-intl {
-  background: #ffffff;
-  border: 1px solid #90caf9;
-  box-shadow: none !important;
-  border-radius: 0px !important;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid #bfdbfe;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.08);
+}
+
+/* Custom Scrollbar for Chat & Long Content */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* ==========================================================================
-   GIGW & WCAG 2.1 AAA High Contrast Mode
+   GIGW & WCAG 2.1 AAA Accessibility Modes
    ========================================================================== */
 html.high-contrast {
   color-scheme: dark;
@@ -106,18 +97,6 @@ html.high-contrast header,
 html.high-contrast nav {
   background-color: #070d18 !important;
   border-color: #1e293b !important;
-}
-
-html.high-contrast .bg-\[\#f1f5f9\] {
-  background-color: #0f172a !important;
-  border-color: #1e293b !important;
-  color: #cbd5e1 !important;
-}
-
-html.high-contrast .bg-\[\#f1f5f9\] span,
-html.high-contrast .bg-\[\#f1f5f9\] div,
-html.high-contrast .bg-\[\#f1f5f9\] a {
-  color: #cbd5e1 !important;
 }
 
 html.high-contrast .bg-white,
@@ -160,104 +139,4 @@ html.high-contrast select {
   background-color: #1f2937 !important;
   color: #f9fafb !important;
   border-color: #4b5563 !important;
-}
-
-html.high-contrast input::placeholder,
-html.high-contrast textarea::placeholder {
-  color: #9ca3af !important;
-}
-
-html.high-contrast .bg-emerald-50,
-html.high-contrast .bg-emerald-100 {
-  background-color: #064e3b !important;
-  color: #a7f3d0 !important;
-  border-color: #059669 !important;
-}
-
-html.high-contrast .text-emerald-700,
-html.high-contrast .text-emerald-800 {
-  color: #6ee7b7 !important;
-}
-
-html.high-contrast .bg-amber-50,
-html.high-contrast .bg-amber-100 {
-  background-color: #451a03 !important;
-  color: #fde68a !important;
-  border-color: #d97706 !important;
-}
-
-html.high-contrast .text-amber-700,
-html.high-contrast .text-amber-800 {
-  color: #fcd34d !important;
-}
-
-html.high-contrast .bg-blue-50,
-html.high-contrast .bg-blue-100 {
-  background-color: #172554 !important;
-  color: #bfdbfe !important;
-  border-color: #2563eb !important;
-}
-
-html.high-contrast img {
-  filter: none !important;
-  opacity: 1 !important;
-}
-
-html.high-contrast .border-slate-200,
-html.high-contrast .border-slate-300 {
-  border-color: #334155 !important;
-}
-
-html.high-contrast .chat-bubble-user {
-  background-color: #1e3a8a !important;
-  color: #ffffff !important;
-}
-
-html.high-contrast .chat-bubble-assistant {
-  background-color: #111827 !important;
-  border-color: #374151 !important;
-  color: #f1f5f9 !important;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #e2e8f0;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #94a3b8;
-  border-radius: 0px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
-}
-
-/* Official Print Stylesheet */
-@media print {
-  @page {
-    margin: 12mm 15mm;
-    size: auto;
-  }
-  body {
-    background: #ffffff !important;
-    color: #0f172a !important;
-    font-size: 11pt !important;
-  }
-  .print\:hidden {
-    display: none !important;
-  }
-  * {
-    box-shadow: none !important;
-    text-shadow: none !important;
-    border-radius: 0px !important;
-  }
-  aside, .border {
-    border: 1px solid #b0bec5 !important;
-  }
-  .rounded-2xl, .rounded-xl {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
 }

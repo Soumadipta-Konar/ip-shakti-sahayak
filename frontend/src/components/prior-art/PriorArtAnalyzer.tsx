@@ -164,8 +164,8 @@ export const PriorArtAnalyzer: React.FC = () => {
       matched_prior_art: mockMatches,
       recommended_strategies: [
         {
-          pathway: risk >= 80 ? 'AYUSH Form 24D Manufacturing License' : 'Phytopharmaceutical Patent (CDSCO Rule 122-E)',
-          description: risk >= 80 ? 'Protect as an AYUSH Proprietary Medicine and secure Class 5 Trademark.' : 'File composition & extraction process claims with CDSCO & IPO.',
+          pathway: risk >= 80 ? 'State SLA Form 24D Manufacturing License' : 'Phytopharmaceutical Patent (CDSCO Rule 122-E)',
+          description: risk >= 80 ? 'Protect as an ASU Proprietary Medicine and secure Class 5 Trademark.' : 'File composition & extraction process claims with CDSCO & IPO.',
           timeline: risk >= 80 ? '3-6 months' : '18-30 months'
         },
         {

@@ -128,7 +128,7 @@ export const PortalSidebar: React.FC = () => {
 
           {!isCollapsed && (
             <div className="text-[9px] text-slate-500 text-center font-medium">
-              Ministry of AYUSH &bull; SIH 045
+              Government of India &bull; DPI 2.0 &bull; SIH 2024
             </div>
           )}
         </div>

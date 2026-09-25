@@ -16,7 +16,7 @@ export const ABSCalculator: React.FC = () => {
         rate: '0% (Statutory Exemption)',
         amount: 0,
         status: 'EXEMPT under BDA (Amendment) Act 2023',
-        description: 'Codified traditional knowledge users and AYUSH registered vaidyas/practitioners are exempt from prior SBB intimation and ABS fee sharing.',
+        description: 'Codified traditional knowledge practitioners and registered Vaidyas/healers are exempt from prior SBB intimation and ABS fee sharing under Section 7.',
       };
     }
 

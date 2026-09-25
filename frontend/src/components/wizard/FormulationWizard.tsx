@@ -79,7 +79,7 @@ export const FormulationWizard: React.FC = () => {
       statute = 'Drugs & Cosmetics Act 1940 §3(a) & Rule 158-B(1)';
       patentability = 'STATUTORILY BARRED UNDER SECTION 3(p) & 3(e). Protected as Traditional Knowledge.';
       absStatus = 'EXEMPT from prior SBB intimation for Indian entities/healers (BDA 2023 §7). Foreign entities require NBA clearance (§6).';
-      regulator = 'State AYUSH Licensing Authority (SLA)';
+      regulator = 'State Licensing Authority (SLA - ASU Division)';
       clinicalNorms = 'No clinical trial required. Textual citations from First Schedule authoritative books sufficient.';
       exportAdvice = 'Export as Dietary Supplement (US DSHEA) or Traditional Herbal Medicinal Product (EU THMPD 30-year rule).';
       riskType = 'HIGH_BAR_SEC_3P';
@@ -115,7 +115,7 @@ export const FormulationWizard: React.FC = () => {
       statute = 'Drugs & Cosmetics Act 1940 §3(h) & Rule 158-B(2)';
       patentability = 'CONDITIONAL & HIGH SECTION 3(e) RISK. Must prove synergistic enhanced efficacy beyond mere additive effect.';
       absStatus = 'MANDATORY prior intimation and benefit sharing agreement with State Biodiversity Board (SBB).';
-      regulator = 'State AYUSH Licensing Authority (SLA)';
+      regulator = 'State Licensing Authority (SLA - ASU Division)';
       clinicalNorms = 'Pilot safety data, published scientific literature, or clinical trial depending on novel solvent.';
       exportAdvice = 'US FDA NDI notification required if novelty in ingredient processing exists.';
       riskType = 'CONDITIONAL_SEC_3E';
@@ -158,7 +158,7 @@ export const FormulationWizard: React.FC = () => {
       patentability = 'BARRED UNDER SECTION 3(p) & 3(e). Traditional Knowledge.';
       patentRiskClass = 'text-red-800 bg-red-50 border-red-200';
       absStatus = 'EXEMPT from prior SBB intimation for Indian entities/healers (BDA 2023). Foreign entities require NBA approval.';
-      regulator = 'State AYUSH Licensing Authority (SLA)';
+      regulator = 'State Licensing Authority (SLA - ASU Division)';
       clinicalNorms = 'No clinical trials required (Classical textual citations sufficient).';
       exportAdvice = 'Export as Dietary Supplement (US DSHEA) or Traditional Herbal Medicinal Product (EU THMPD 30-year rule).';
     } else if (isPurified) {
@@ -194,7 +194,7 @@ export const FormulationWizard: React.FC = () => {
       patentability = 'CONDITIONAL & HIGH SECTION 3(e) RISK. Must prove synergistic enhanced efficacy beyond mere additive effect.';
       patentRiskClass = 'text-amber-800 bg-amber-50 border-amber-200';
       absStatus = 'MANDATORY prior intimation and benefit sharing agreement with State Biodiversity Board (SBB).';
-      regulator = 'State AYUSH Licensing Authority (SLA)';
+      regulator = 'State Licensing Authority (SLA - ASU Division)';
       clinicalNorms = 'Pilot safety data, published scientific literature, or clinical trial depending on novel solvent.';
       exportAdvice = 'US FDA NDI notification required if novelty in ingredient processing exists.';
     }

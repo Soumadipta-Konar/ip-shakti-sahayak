@@ -52,7 +52,7 @@ export const FacilitatorBridge: React.FC = () => {
               </div>
               <h3 className="text-lg font-bold text-slate-900">Escalation Dossier Dispatched</h3>
               <p className="text-xs text-slate-600 max-w-sm mx-auto">
-                A registered Ministry of AYUSH empaneled IP Attorney has been alerted. You will receive a callback or email within 24 business hours.
+                A registered sovereign-empaneled statutory IP Attorney and Patent Agent has been alerted. You will receive a consultation callback within 24 business hours.
               </p>
             </div>
           ) : (
@@ -62,9 +62,9 @@ export const FacilitatorBridge: React.FC = () => {
                   <UserCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-[#002147]">Connect with AYUSH IP Facilitator</h3>
+                  <h3 className="text-lg font-bold text-[#002147]">Connect with Certified IP Facilitator</h3>
                   <p className="text-xs text-slate-600">
-                    Pro-bono IP and Patent Attorney Bridge for high-risk statutory triage
+                    Pro-bono statutory Patent & Trademark Attorney Bridge for high-risk triage
                   </p>
                 </div>
               </div>
@@ -90,7 +90,7 @@ export const FacilitatorBridge: React.FC = () => {
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="name@ayushclinic.in"
+                      placeholder="counsel@iplaw.in"
                       className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#002147] focus:bg-white"
                     />
                   </div>

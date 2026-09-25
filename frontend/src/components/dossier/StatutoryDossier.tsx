@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { 
   Printer, 
   FileText, 
@@ -95,8 +94,8 @@ export const StatutoryDossier: React.FC = () => {
         status: 'Mandatory'
       },
       {
-        form_code: 'AYUSH Form 24D',
-        authority: 'State AYUSH Licensing Authority (SLA)',
+        form_code: 'Statutory Form 24D',
+        authority: 'State Licensing Authority (SLA - ASU Division)',
         statutory_act: 'Drugs & Cosmetics Act 1940 & Rules 1945',
         purpose: 'Application for manufacturing license of Ayurvedic Patent or Proprietary (P&P) Medicine.',
         deadline: 'Prior to factory batch manufacture',
@@ -105,7 +104,7 @@ export const StatutoryDossier: React.FC = () => {
     ];
 
     const compiled: DossierResult = {
-      dossier_ref: `AYUSH-IPR-2026-${Math.floor(100000 + Math.random() * 900000)}`,
+      dossier_ref: `IP-SAKTI-2026-${Math.floor(100000 + Math.random() * 900000)}`,
       created_at: new Date().toLocaleDateString('en-IN', {
         day: '2-digit',
         month: 'short',
@@ -121,7 +120,7 @@ export const StatutoryDossier: React.FC = () => {
       formulation: {
         name: formulationName,
         triage_category: classificationState?.category || 'Ayurvedic Proprietary Medicine (P&P)',
-        regulatory_authority: classificationState?.authority || 'State AYUSH Licensing Authority',
+        regulatory_authority: classificationState?.authority || 'State Licensing Authority (SLA - ASU Division)',
         patent_risk_score: priorArtAnalysis ? `${priorArtAnalysis.patentability_risk_score}%` : '80%',
         prior_art_status: priorArtAnalysis?.overall_status || 'HIGH_REJECTION_RISK_AGGREGATION'
       },
@@ -129,7 +128,7 @@ export const StatutoryDossier: React.FC = () => {
         assessment: absCalculation?.status || 'Subject to BDA 2023 Benefit Sharing obligation',
         statutory_rate: absCalculation?.statutoryRateDescription || '0.5% of Gross Ex-Factory Sale (Commercial Bracket)',
         exemptions_applicable: absCalculation?.isRegisteredPractitioner
-          ? 'EXEMPT (Section 7 Exemption for Registered AYUSH Vaidyas/Practitioners)'
+          ? 'EXEMPT (Section 7 Exemption for Registered Vaidyas / Practitioners)'
           : 'Standard Commercial Entity - Non-Exempt'
       },
       statutory_forms: defaultForms,
@@ -252,27 +251,26 @@ export const StatutoryDossier: React.FC = () => {
 
             <div className="flex items-start justify-between gap-6 pt-2">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 relative flex-shrink-0">
-                  <Image
-                    src="/images/ayush_logo.jpg"
-                    alt="Ministry of AYUSH Emblem"
-                    width={64}
-                    height={64}
-                    className="object-contain"
-                  />
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#002147] to-[#0A3D62] text-white flex items-center justify-center shadow-sm flex-shrink-0">
+                  <Scale className="w-7 h-7 text-[#FF9933]" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-700 uppercase tracking-widest">
-                    भारत सरकार &bull; Government of India
-                  </h4>
-                  <h3 className="text-sm font-black text-slate-900 uppercase">
-                    आयुष मंत्रालय &bull; Ministry of AYUSH
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">
+                      भारत सरकार &bull; Government of India
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
+                      DPI 2.0 / GIGW 3.0
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-black text-[#002147] uppercase tracking-wide mt-0.5">
+                    National Intellectual Property & Statutory Copilot Portal
                   </h3>
-                  <h1 className="text-xl sm:text-2xl font-black text-[#002147] mt-1">
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
                     STATUTORY IPR & REGULATORY COMPLIANCE DOSSIER
                   </h1>
                   <p className="text-xs text-slate-500 font-medium">
-                    National Intellectual Property, BDA 2023 Benefit Sharing, & Licensing Roadmap
+                    National Intellectual Property, BDA 2023 Benefit Sharing, &amp; Licensing Roadmap
                   </p>
                 </div>
               </div>
@@ -443,7 +441,7 @@ export const StatutoryDossier: React.FC = () => {
             </h4>
             <ul className="text-xs text-slate-700 space-y-1 list-disc list-inside">
               <li>
-                <span className="font-semibold text-slate-900">Patent Route Advisory:</span> Do not file raw botanical mixture patent to avoid Section 3(p) TKDL revocation. Protect via AYUSH Form 24D Manufacturing License and Class 5 Word/Device Trademark.
+                <span className="font-semibold text-slate-900">Patent Route Advisory:</span> Do not file raw botanical mixture patent to avoid Section 3(p) TKDL revocation. Protect via State SLA Form 24D Manufacturing License and Class 5 Word/Device Trademark.
               </li>
               <li>
                 <span className="font-semibold text-slate-900">National Biodiversity Authority:</span> File Form III before submitting any international PCT patent applications based on Indian bio-resources.
@@ -470,14 +468,14 @@ export const StatutoryDossier: React.FC = () => {
             </div>
 
             {/* Official Certification Badge Graphic */}
-            <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-950">
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-emerald-500/40 bg-emerald-50 text-emerald-950">
               <ShieldCheck className="w-8 h-8 text-emerald-600 flex-shrink-0" />
               <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider">
-                  Ministry of AYUSH Standards
+                <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-900">
+                  National Statutory Compliance Standards
                 </div>
                 <div className="text-[10px] text-emerald-800 font-semibold">
-                  GIGW 3.0 &bull; SIH 045 Compliant
+                  GIGW 3.0 &bull; DPI 2.0 Compliant
                 </div>
               </div>
             </div>
