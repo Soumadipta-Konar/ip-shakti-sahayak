@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { GovtBanner } from "@/components/layout/GovtBanner";
-import { Header } from "@/components/layout/Header";
-import { GazetteTicker } from "@/components/layout/GazetteTicker";
-import { GovtFooter } from "@/components/layout/GovtFooter";
+import { GdsHeader } from "@/components/layout/GdsHeader";
+import { GdsPhaseBanner } from "@/components/layout/GdsPhaseBanner";
+import { GdsFooter } from "@/components/layout/GdsFooter";
 import { CitationDrawer } from "@/components/chat/CitationDrawer";
 import { FacilitatorBridge } from "@/components/chat/FacilitatorBridge";
 import { QueryProvider } from "@/components/providers/QueryProvider";
@@ -12,8 +11,8 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "IP-SAKTI Sahayak | National AI Statutory Copilot & IPR Portal",
-  description: "Official National AI Statutory Copilot for Intellectual Property, Patents Act 1970, CSIR-TKDL Prior-Art, and Biological Diversity Act 2023.",
+  title: "IP-SAKTI Sahayak | Statutory Patent & Bio-Resource Intelligence Platform",
+  description: "Enterprise Statutory Intelligence for Indian & International Botanical Formulations: Section 3(p) TKDL Prior-Art Screening, BDA 2023 ABS Liabilities, and Compliance Dossiers.",
 };
 
 export default function RootLayout({
@@ -23,21 +22,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-[#f8fafc] text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-100 selection:text-blue-900`}>
+      <body className={`${inter.className} bg-[#f3f2f1] text-[#0b0c0c] min-h-screen flex flex-col antialiased selection:bg-[#ffdd00] selection:text-[#0b0c0c]`}>
         <QueryProvider>
           <div className="print:hidden">
-            <GovtBanner />
-            <Header />
-            <GazetteTicker />
+            <GdsHeader />
+            <GdsPhaseBanner />
           </div>
           
-          <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-8">
+          <main id="main-content" className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col gap-8">
             {children}
           </main>
 
           <CitationDrawer />
           <FacilitatorBridge />
-          <GovtFooter />
+          <GdsFooter />
         </QueryProvider>
       </body>
     </html>

@@ -317,32 +317,32 @@ export const ChatContainer: React.FC = () => {
     : `Ask about patentability, Section 3 bars, TKDL, or ABS compliance in ${language.toUpperCase()} or English...`;
 
   return (
-    <div className={`flex-1 flex flex-col bg-white rounded-2xl border overflow-hidden shadow-xs relative ${
-      isIntl ? 'border-blue-300' : 'border-slate-200'
+    <div className={`flex-1 flex flex-col bg-white border shadow-xs relative ${
+      isIntl ? 'border-[#1d70b8]' : 'border-[#b1b4b6]'
     }`}>
       {/* 1. Active Formulation Dossier / Triage Recommendation Banner */}
       {classificationState ? (
-        <div className="bg-emerald-50/70 border-b border-emerald-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 text-emerald-900 font-medium">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            <span className="font-bold">Active Formulation:</span>
-            <span className="font-semibold bg-white border border-emerald-300 px-2.5 py-0.5 rounded-full text-emerald-800 shadow-2xs">
+        <div className="bg-[#f4fbf7] border-b-2 border-[#00703c] px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 text-[#00703c] font-medium">
+            <CheckCircle2 className="w-4 h-4 text-[#00703c] flex-shrink-0" />
+            <span className="font-bold text-[#0b0c0c]">Active Case Formulation:</span>
+            <span className="gds-tag gds-tag-green">
               {classificationState.category}
             </span>
-            <span className="text-emerald-700 hidden lg:inline text-xs">
+            <span className="text-[#505a5f] hidden lg:inline text-xs">
               &bull; {classificationState.patentability?.slice(0, 60)}...
             </span>
           </div>
           <Link
             href="/wizard"
-            className="text-xs font-semibold text-emerald-800 hover:text-emerald-900 hover:underline flex items-center gap-1"
+            className="text-xs font-bold text-[#1d70b8] hover:underline flex items-center gap-1"
           >
             <span>Modify Triage</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       ) : (
-        <div className="bg-amber-50/80 border-b border-amber-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="bg-[#fffdf2] border-b-2 border-[#ffdd00] px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2 text-amber-900">
             <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
             <span className="font-bold text-amber-950">Step 1 Recommended:</span>
@@ -361,7 +361,7 @@ export const ChatContainer: React.FC = () => {
       )}
 
       {/* 2. Top Toolbar */}
-      <div className="p-3.5 sm:p-4 bg-slate-50/90 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-3.5 sm:p-4 bg-[#f3f2f1] border-b border-[#b1b4b6] flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
           <div className="flex items-center gap-2">
