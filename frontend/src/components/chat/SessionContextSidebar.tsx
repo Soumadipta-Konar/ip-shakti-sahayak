@@ -12,9 +12,10 @@ import { ActiveWorkspaceTab } from '@/app/page';
 
 interface SessionContextSidebarProps {
   onSelectTab?: (tab: ActiveWorkspaceTab) => void;
+  onClose?: () => void;
 }
 
-export const SessionContextSidebar: React.FC<SessionContextSidebarProps> = ({ onSelectTab }) => {
+export const SessionContextSidebar: React.FC<SessionContextSidebarProps> = ({ onSelectTab, onClose }) => {
   const { 
     classificationState, 
     setClassificationState, 
@@ -47,17 +48,30 @@ export const SessionContextSidebar: React.FC<SessionContextSidebarProps> = ({ on
           </p>
         </div>
 
-        {classificationState && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="text-xs font-bold text-[#1d70b8] hover:underline flex items-center gap-1 cursor-pointer"
-            title="Reset active case dossier"
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span>Reset</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {classificationState && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="text-xs font-bold text-[#1d70b8] hover:underline flex items-center gap-1 cursor-pointer"
+              title="Reset active case dossier"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Reset</span>
+            </button>
+          )}
+
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1 text-[#505a5f] hover:text-[#0b0c0c] text-xs font-bold border border-transparent hover:border-[#b1b4b6]"
+              title="Close Case Summary"
+            >
+              &times;
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Structured Summary Rows (GOV.UK Summary List Pattern) */}

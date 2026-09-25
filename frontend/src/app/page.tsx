@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { GdsStartPage } from '@/components/home/GdsStartPage';
 import { ChatContainer } from '@/components/chat/ChatContainer';
-import { SessionContextSidebar } from '@/components/chat/SessionContextSidebar';
 import { PriorArtAnalyzer } from '@/components/prior-art/PriorArtAnalyzer';
 import { StatutoryDossier } from '@/components/dossier/StatutoryDossier';
 import { FormulationWizard } from '@/components/wizard/FormulationWizard';
@@ -62,13 +61,8 @@ function MainWorkspace() {
       )}
 
       {activeTab === 'copilot' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <div className="lg:col-span-8 flex flex-col min-h-[660px]">
-            <ChatContainer />
-          </div>
-          <div className="lg:col-span-4 sticky top-6">
-            <SessionContextSidebar onSelectTab={handleSelectTab} />
-          </div>
+        <div className="w-full flex flex-col min-h-[660px]">
+          <ChatContainer />
         </div>
       )}
 

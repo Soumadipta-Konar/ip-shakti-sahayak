@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Send, 
   Bot, 
@@ -20,7 +20,8 @@ import {
   BookMarked,
   Bookmark,
   ShieldCheck,
-  MessageSquare
+  Briefcase,
+  X
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { ChatMessage, StatutoryCitation } from '@/lib/types';
@@ -28,12 +29,13 @@ import { askLegalQuestion } from '@/lib/apiClient';
 import { JurisdictionToggle } from './JurisdictionToggle';
 import { AudioRecorder } from '../voice/AudioRecorder';
 import { MarkdownContent } from './MarkdownContent';
+import { SessionContextSidebar } from './SessionContextSidebar';
 
 const WELCOME_TEXT = `### Welcome to IP-SAKTI Sahayak
 
-I am your **Enterprise Statutory AI Legal Copilot**, specialized in **The Patents Act (1970)**, **The Biological Diversity (Amendment) Act (2023)**, **CSIR Traditional Knowledge Digital Library (TKDL)**, and international patent clearance frameworks (WIPO / PCT).
+I am your **Statutory AI Legal Copilot**, grounded in **The Patents Act (1970)**, **The Biological Diversity (Amendment) Act (2023)**, and **CSIR Traditional Knowledge Digital Library (TKDL)**.
 
-How may I evaluate your botanical formulation or statutory patent inquiry today?`;
+Ask any question regarding botanical patentability, Section 3(p) prior-art bars, synergistic admixtures, or BDA 2023 ABS royalties.`;
 
 const createWelcomeMessage = (): ChatMessage => ({
   id: 'welcome',
@@ -54,9 +56,9 @@ const createWelcomeMessage = (): ChatMessage => ({
     },
     {
       id: 'welcome-cit-2',
-      act: 'Biological Diversity Act, 2002 (as amended 2023)',
+      act: 'Biological Diversity Act, 2023',
       section: 'Section 6',
-      description: 'Prior NBA Approval for IPR on Indian Biological Resources',
+      description: 'Prior NBA Approval for IPR on Biological Resources',
       jurisdiction: 'IN',
       url: 'http://nbaindia.org/',
       source: 'canonical'
@@ -78,13 +80,11 @@ export const ChatContainer: React.FC = () => {
     chatMessages, 
     setChatMessages, 
     clearChatMessages, 
-    savedCitations, 
     addSavedCitations, 
     removeSavedCitation, 
     isCitationSaved,
     jurisdiction, 
     setJurisdiction, 
-    language, 
     setSelectedCitation,
     sessionId,
     classificationState,
@@ -96,12 +96,12 @@ export const ChatContainer: React.FC = () => {
   const [isHydrated, setIsHydrated] = useState(false);
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const isIntl = jurisdiction === 'INTL';
 
   useEffect(() => {
     setIsHydrated(true);
-    // Initialize or replace legacy Hindi welcome message in storage
     if (
       chatMessages.length === 0 || 
       (chatMessages.length === 1 && chatMessages[0].id === 'welcome' && /[\u0900-\u0D7F]/.test(chatMessages[0].text))
@@ -136,7 +136,7 @@ export const ChatContainer: React.FC = () => {
 
     window.speechSynthesis.cancel();
 
-    let cleanText = text
+    const cleanText = text
       .replace(/#{1,6}\s+/g, '')
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
@@ -151,14 +151,8 @@ export const ChatContainer: React.FC = () => {
     utterance.rate = 0.95;
 
     const voices = window.speechSynthesis.getVoices();
-    const matchedVoice = voices.find((v) => {
-      const vLang = v.lang.toLowerCase().replace('_', '-');
-      return vLang.startsWith('en');
-    });
-
-    if (matchedVoice) {
-      utterance.voice = matchedVoice;
-    }
+    const matchedVoice = voices.find((v) => v.lang.toLowerCase().replace('_', '-').startsWith('en'));
+    if (matchedVoice) utterance.voice = matchedVoice;
 
     utterance.onend = () => setSpeakingMessageId(null);
     utterance.onerror = () => setSpeakingMessageId(null);
@@ -199,7 +193,7 @@ export const ChatContainer: React.FC = () => {
       const errorMessage: ChatMessage = {
         id: 'err_' + Date.now(),
         sender: 'assistant',
-        text: `⚠️ **AI Copilot Connection Notice**\n\nUnable to reach the legal AI backend at \`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}\`.\n\n*Error details:* ${err?.message || 'Network request failed'}\n\nPlease ensure the backend server is running at port 8000.`,
+        text: `⚠️ **AI Copilot Connection Notice**\n\nUnable to reach the legal AI backend at \`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}\`.\n\nPlease verify that the backend is running.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         jurisdiction,
         confidenceScore: 0,
@@ -235,7 +229,6 @@ export const ChatContainer: React.FC = () => {
     ? [
         "How does US FDA Botanical Drug Guidance regulate Ayurvedic IND/NDA?",
         "What are WIPO GRATK Treaty 2024 mandatory patent disclosure rules?",
-        "How does EMA THMPD 30-year traditional use rule apply to botanical exports?",
         "Can an Indian classical formula qualify for PCT international patent filing?",
       ]
     : classificationState?.category?.includes('Classical')
@@ -243,99 +236,87 @@ export const ChatContainer: React.FC = () => {
         "Can I patent an altered delivery method for this classical formula?",
         "Does Section 3(p) permit extracting active fractions?",
         "What are my BDA 2023 ABS exemptions as an Indian manufacturer?",
-        "How do I cite CSIR-TKDL textual prior art in patent applications?",
       ]
     : [
         "Can I patent a ginger and honey cough syrup under Section 3(p)?",
         "What are my ABS royalty requirements under BDA 2023 for Ashwagandha?",
         "How does Section 3(e) apply to synergistic herbal admixtures?",
-        "What approvals are required from National Biodiversity Authority (Form III)?",
       ];
 
   const placeholderText = isIntl
     ? "Ask about WIPO GRATK, PCT, US FDA Botanical Drug guidance, or EMA THMPD..."
     : "Ask about patentability, Section 3 bars, TKDL, or ABS compliance in English...";
 
-  return (
-    <div className={`flex-1 flex flex-col bg-white border shadow-xs relative ${
-      isIntl ? 'border-[#1d70b8]' : 'border-[#b1b4b6]'
-    }`}>
-      {/* 1. Active Formulation Dossier / Triage Recommendation Banner */}
-      {classificationState ? (
-        <div className="bg-[#f4fbf7] border-b-2 border-[#00703c] px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 text-[#00703c] font-medium">
-            <CheckCircle2 className="w-4 h-4 text-[#00703c] flex-shrink-0" />
-            <span className="font-bold text-[#0b0c0c]">Active Case Formulation:</span>
-            <span className="gds-tag gds-tag-green">
-              {classificationState.category}
-            </span>
-            <span className="text-[#505a5f] hidden lg:inline text-xs">
-              &bull; {classificationState.patentability?.slice(0, 60)}...
-            </span>
-          </div>
-          <Link
-            href="/wizard"
-            className="text-xs font-bold text-[#1d70b8] hover:underline flex items-center gap-1"
-          >
-            <span>Modify Triage</span>
-            <ArrowRight className="w-3 h-3" />
-          </Link>
-        </div>
-      ) : (
-        <div className="bg-[#fff7e6] border-b-2 border-[#ffdd00] px-4 py-2 flex items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 text-[#0b0c0c]">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
-            <span className="font-bold">Step 1 Recommended:</span>
-            <span className="text-[#505a5f]">Classify your formulation first to help the AI apply tailored Section 3(p)/(e)/(d) and ABS rules.</span>
-          </div>
-          <Link
-            href="/wizard"
-            className="text-xs font-bold text-white bg-[#00703c] hover:bg-[#005a30] px-3 py-1 rounded-none inline-flex items-center gap-1 shadow-xs"
-          >
-            <span>Launch Triage</span>
-            <ArrowRight className="w-3 h-3" />
-          </Link>
-        </div>
-      )}
+  const completedSteps = [
+    classificationState ? 1 : 0,
+    0, // Prior art placeholder
+    0, // ABS placeholder
+    0, // Dossier placeholder
+  ].reduce((a, b) => a + b, 0);
 
-      {/* 2. Top Toolbar */}
-      <div className="px-4 py-3 border-b border-[#b1b4b6] bg-[#f8f8f8] flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#00703c]" />
+  return (
+    <div className="relative w-full flex flex-col bg-white border border-[#b1b4b6] shadow-xs">
+      {/* 1. Sleek, Compact Header Toolbar */}
+      <div className="px-4 py-2.5 border-b border-[#b1b4b6] bg-[#f8f8f8] flex flex-wrap items-center justify-between gap-3">
+        {/* Left: Clean Title & Vector Status */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-2 h-2 rounded-full bg-[#00703c] animate-pulse" />
           <h2 className="text-sm font-bold text-[#0b0c0c]">
-            Statutory AI Copilot (Patents Act 1970 &amp; BDA 2023)
+            Statutory AI Copilot
           </h2>
-          <span className="gds-tag gds-tag-blue hidden sm:inline">
-            BAAI Vector Grounded
+          <span className="text-[11px] text-[#505a5f] hidden sm:inline">
+            &bull; Grounded in 8,936 Legal Chunks
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Center/Right: Compact Jurisdiction Switch & Controls */}
+        <div className="flex items-center gap-2.5">
           <JurisdictionToggle value={jurisdiction} onChange={setJurisdiction} />
 
+          {/* Case Dossier Slide-over Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className={`px-2.5 py-1 text-xs font-bold flex items-center gap-1.5 transition-colors border ${
+              isSidebarOpen || classificationState
+                ? 'bg-[#0b0c0c] text-white border-[#0b0c0c]'
+                : 'bg-white text-[#0b0c0c] border-[#b1b4b6] hover:bg-[#f3f2f1]'
+            }`}
+            title="Toggle Active Case Dossier Summary"
+          >
+            <Briefcase className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Case Dossier</span>
+            <span className={`text-[10px] px-1 py-0.2 rounded-full font-mono ${
+              classificationState ? 'bg-[#00703c] text-white' : 'bg-[#e5e5e5] text-[#0b0c0c]'
+            }`}>
+              {classificationState ? 'Triaged' : `${completedSteps}/4`}
+            </span>
+          </button>
+
+          {/* Print Action */}
           <button
             type="button"
             onClick={handlePrint}
-            className="px-2.5 py-1 text-xs font-bold text-[#0b0c0c] bg-white border border-[#b1b4b6] hover:bg-[#f3f2f1] flex items-center gap-1.5 transition-colors"
+            className="p-1.5 text-[#505a5f] hover:text-[#0b0c0c] border border-transparent hover:border-[#b1b4b6] transition-colors"
             title="Print Official Legal Advice Record"
           >
-            <Printer className="w-3.5 h-3.5 text-[#505a5f]" />
-            <span className="hidden sm:inline">Print / PDF</span>
+            <Printer className="w-3.5 h-3.5" />
           </button>
 
+          {/* Reset Action */}
           {isConfirmingClear ? (
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={handleClearHistory}
-                className="px-2 py-1 bg-[#d4351c] text-white text-xs font-bold transition-colors"
+                className="px-2 py-0.5 bg-[#d4351c] text-white text-[11px] font-bold"
               >
-                Confirm Reset
+                Reset
               </button>
               <button
                 type="button"
                 onClick={() => setIsConfirmingClear(false)}
-                className="px-1.5 py-1 text-xs text-[#505a5f] hover:text-[#0b0c0c]"
+                className="text-[11px] text-[#505a5f] hover:text-[#0b0c0c]"
               >
                 Cancel
               </button>
@@ -353,228 +334,187 @@ export const ChatContainer: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Messages Stream */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 min-h-[420px] max-h-[580px] bg-[#ffffff]">
-        {displayMessages.map((msg) => (
-          <motion.div
-            key={msg.id}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-            className={`flex items-start gap-3.5 ${
-              msg.sender === 'user' ? 'justify-end' : 'justify-start'
-            }`}
-          >
-            {msg.sender === 'assistant' && (
-              <div className="w-8 h-8 bg-[#0b0c0c] text-white flex items-center justify-center flex-shrink-0 mt-0.5 font-bold shadow-xs">
-                <Scale className="w-4 h-4 text-white" />
-              </div>
-            )}
-
-            <div
-              className={`max-w-[88%] sm:max-w-[80%] rounded-none p-4 sm:p-5 shadow-xs transition-all ${
-                msg.sender === 'user'
-                  ? 'bg-[#1d70b8] text-white font-medium border border-[#1d70b8]'
-                  : 'bg-white text-[#0b0c0c] border-2 border-[#b1b4b6]'
+      {/* 2. Chat Layout with Optional Slide-Over Drawer for Case Context */}
+      <div className="relative flex-1 flex overflow-hidden">
+        {/* Main Conversation Stream */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 min-h-[460px] max-h-[620px] bg-[#ffffff]">
+          {displayMessages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.15 }}
+              className={`flex items-start gap-3 ${
+                msg.sender === 'user' ? 'justify-end' : 'justify-start'
               }`}
             >
-              {/* Message Header */}
-              <div className="flex items-center justify-between gap-3 pb-2.5 mb-2.5 border-b border-[#e5e5e5] text-xs">
-                <div className="flex items-center gap-2 font-bold">
-                  {msg.sender === 'assistant' ? (
-                    <span className="text-[#0b0c0c]">
-                      IP-SAKTI Statutory Copilot
-                    </span>
-                  ) : (
-                    <span className="text-white">Applicant / Practitioner</span>
-                  )}
-                  {msg.jurisdiction && (
-                    <span className={`px-1.5 py-0.5 text-[10px] font-bold ${
-                      msg.sender === 'user'
-                        ? 'bg-blue-800 text-white'
-                        : 'bg-[#f3f2f1] text-[#0b0c0c] border border-[#b1b4b6]'
-                    }`}>
-                      {msg.jurisdiction === 'INTL' ? 'International WIPO' : 'Indian Jurisdiction'}
-                    </span>
-                  )}
+              {msg.sender === 'assistant' && (
+                <div className="w-7 h-7 bg-[#0b0c0c] text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs">
+                  <Scale className="w-3.5 h-3.5 text-white" />
                 </div>
-                <span className={`text-[11px] ${msg.sender === 'user' ? 'text-blue-100' : 'text-[#505a5f]'}`}>
-                  {msg.timestamp || 'Just now'}
-                </span>
-              </div>
+              )}
 
-              {/* Message Body */}
-              <div className="text-sm leading-relaxed">
+              <div
+                className={`max-w-[85%] sm:max-w-[78%] p-3.5 sm:p-4 text-sm leading-relaxed transition-all ${
+                  msg.sender === 'user'
+                    ? 'bg-[#1d70b8] text-white font-medium'
+                    : 'bg-[#f8f8f8] text-[#0b0c0c] border border-[#e5e5e5]'
+                }`}
+              >
+                {/* Subtle Message Meta */}
+                <div className="flex items-center justify-between gap-2 pb-1.5 mb-2 border-b border-[#e5e5e5]/80 text-[11px]">
+                  <span className={`font-bold ${msg.sender === 'user' ? 'text-white' : 'text-[#0b0c0c]'}`}>
+                    {msg.sender === 'assistant' ? 'IP-SAKTI Copilot' : 'Applicant'}
+                  </span>
+                  <span className={msg.sender === 'user' ? 'text-blue-100' : 'text-[#505a5f]'}>
+                    {msg.timestamp || 'Just now'}
+                  </span>
+                </div>
+
+                {/* Content */}
                 {msg.sender === 'assistant' ? (
                   <MarkdownContent content={msg.text} />
                 ) : (
                   <p className="whitespace-pre-wrap">{msg.text}</p>
                 )}
-              </div>
 
-              {/* Citations Box */}
-              {msg.citations && msg.citations.length > 0 && (
-                <div className="mt-4 pt-3 border-t border-[#e5e5e5]">
-                  <div className="text-xs font-bold text-[#505a5f] uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-[#0b0c0c]">
-                      <Scale className="w-3.5 h-3.5 text-[#1d70b8]" />
-                      Statutory Authority Citations ({msg.citations.length})
+                {/* Compact Inline Citations */}
+                {msg.citations && msg.citations.length > 0 && (
+                  <div className="mt-3 pt-2 border-t border-[#e5e5e5] flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className="text-[11px] font-bold text-[#505a5f] uppercase tracking-wider mr-1">
+                      Authorities:
                     </span>
-                    <span className="text-[10px] text-[#505a5f]">
-                      Click citation badge to view full statute
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
                     {msg.citations.map((c, cIdx) => {
                       const isSaved = isCitationSaved(c.act || '', c.section || '');
                       return (
-                        <div
+                        <button
                           key={c.id || cIdx}
-                          className="inline-flex items-center gap-1 bg-[#f3f2f1] border border-[#b1b4b6] px-2.5 py-1 text-xs transition-colors hover:border-[#1d70b8] hover:bg-white"
+                          type="button"
+                          onClick={() => setSelectedCitation(c)}
+                          className="inline-flex items-center gap-1 bg-white border border-[#b1b4b6] px-2 py-0.5 text-[11px] font-bold text-[#1d70b8] hover:border-[#1d70b8] hover:bg-[#f3f2f1] transition-colors"
                         >
-                          <button
-                            type="button"
-                            onClick={() => setSelectedCitation(c)}
-                            className="font-bold text-[#1d70b8] hover:underline"
-                          >
-                            {c.section || 'Statute'} &bull; {c.act?.slice(0, 24)}...
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (isSaved) {
-                                removeSavedCitation(c.id || `${c.act}-${c.section}`);
-                              } else {
-                                addSavedCitations([c], 'user_saved');
-                              }
-                            }}
-                            className="p-0.5 text-[#505a5f] hover:text-[#0b0c0c]"
-                            title={isSaved ? 'Remove citation' : 'Save citation for export'}
-                          >
-                            {isSaved ? (
-                              <BookMarked className="w-3 h-3 text-[#00703c]" />
-                            ) : (
-                              <Bookmark className="w-3 h-3" />
-                            )}
-                          </button>
-                        </div>
+                          <span>{c.section || 'Statute'}</span>
+                          {isSaved && <BookMarked className="w-2.5 h-2.5 text-[#00703c]" />}
+                        </button>
                       );
                     })}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Escalation Warning */}
-              {msg.requiresEscalation && (
-                <div className="mt-4 p-3 bg-[#fff7e6] border-l-4 border-[#ffdd00] flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldAlert className="w-4 h-4 text-[#0b0c0c] flex-shrink-0" />
-                    <p className="text-xs font-semibold text-[#0b0c0c]">
-                      High-complexity statutory inquiry detected. Certified Patent Attorney verification recommended.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setIsEscalationOpen(true)}
-                    className="px-3 py-1.5 bg-[#0b0c0c] hover:bg-[#333333] text-white text-xs font-bold transition-colors whitespace-nowrap"
-                  >
-                    Escalate to IP Attorney
-                  </button>
-                </div>
-              )}
+                {/* Minimal Footer for Assistant */}
+                {msg.sender === 'assistant' && (
+                  <div className="mt-2.5 pt-2 flex items-center justify-between text-xs text-[#505a5f] border-t border-[#e5e5e5] print:hidden">
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSpeech(msg.id, msg.text)}
+                        className={`inline-flex items-center gap-1 text-[11px] font-bold transition-colors ${
+                          speakingMessageId === msg.id ? 'text-[#d4351c]' : 'text-[#1d70b8] hover:underline'
+                        }`}
+                      >
+                        {speakingMessageId === msg.id ? (
+                          <>
+                            <VolumeX className="w-3 h-3 text-[#d4351c] animate-pulse" />
+                            <span>Stop</span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="w-3 h-3 text-[#1d70b8]" />
+                            <span>Listen</span>
+                          </>
+                        )}
+                      </button>
 
-              {/* Audio Listen & Facilitator Footer */}
-              {msg.sender === 'assistant' && (
-                <div className="mt-3.5 pt-2.5 flex flex-wrap items-center justify-between gap-2 text-xs text-[#505a5f] border-t border-[#e5e5e5] print:hidden">
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handleToggleSpeech(msg.id, msg.text)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold transition-all border ${
-                        speakingMessageId === msg.id
-                          ? 'bg-[#fff7e6] border-[#ffdd00] text-[#0b0c0c]'
-                          : 'bg-white hover:bg-[#f3f2f1] border-[#b1b4b6] text-[#0b0c0c]'
-                      }`}
-                      title={speakingMessageId === msg.id ? 'Stop listening' : 'Listen to legal assessment in audio'}
-                    >
-                      {speakingMessageId === msg.id ? (
-                        <>
-                          <VolumeX className="w-3.5 h-3.5 text-[#d4351c] animate-pulse" />
-                          <span>Stop Audio</span>
-                        </>
-                      ) : (
-                        <>
-                          <Volume2 className="w-3.5 h-3.5 text-[#1d70b8]" />
-                          <span>Listen Audio</span>
-                        </>
-                      )}
-                    </button>
-
-                    {msg.confidenceScore !== undefined && (
-                      <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-[#505a5f]">
-                        <ShieldCheck className="w-3.5 h-3.5 text-[#00703c]" />
-                        <span>Statutory Grounding:</span>
-                        <span className="text-[#00703c]">
-                          {(msg.confidenceScore * 100).toFixed(0)}%
+                      {msg.confidenceScore !== undefined && (
+                        <span className="hidden sm:inline text-[11px] text-[#505a5f]">
+                          Grounding: <strong className="text-[#00703c]">{(msg.confidenceScore * 100).toFixed(0)}%</strong>
                         </span>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
 
-                  <button
-                    onClick={() => setIsEscalationOpen(true)}
-                    className="text-[#1d70b8] hover:underline flex items-center gap-1 font-bold text-xs"
-                  >
-                    <ShieldAlert className="w-3.5 h-3.5 text-[#ffdd00]" />
-                    <span>Facilitator Escalation</span>
-                  </button>
+                    <button
+                      onClick={() => setIsEscalationOpen(true)}
+                      className="text-[11px] font-bold text-[#505a5f] hover:text-[#0b0c0c] hover:underline flex items-center gap-1"
+                    >
+                      <ShieldAlert className="w-3 h-3 text-[#ffdd00]" />
+                      <span>Escalate</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {msg.sender === 'user' && (
+                <div className="w-7 h-7 bg-[#1d70b8] text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs">
+                  <User className="w-3.5 h-3.5" />
                 </div>
               )}
-            </div>
+            </motion.div>
+          ))}
 
-            {msg.sender === 'user' && (
-              <div className="w-8 h-8 bg-[#1d70b8] text-white flex items-center justify-center flex-shrink-0 mt-0.5 font-bold shadow-xs">
-                <User className="w-4 h-4" />
+          {isLoading && (
+            <div className="flex items-center gap-2.5 text-[#505a5f] text-xs">
+              <div className="w-7 h-7 bg-[#0b0c0c] flex items-center justify-center text-white">
+                <Bot className="w-3.5 h-3.5 animate-spin" />
               </div>
-            )}
-          </motion.div>
-        ))}
+              <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[#b1b4b6] text-xs font-medium">
+                <Sparkles className="w-3 h-3 text-[#1d70b8] animate-pulse" />
+                <span>Searching statutory vectors &amp; synthesizing legal advice...</span>
+              </div>
+            </div>
+          )}
+        </div>
 
-        {isLoading && (
-          <div className="flex items-center gap-3 text-[#505a5f] text-xs max-w-4xl mx-auto">
-            <div className="w-8 h-8 bg-[#0b0c0c] flex items-center justify-center text-white shadow-xs">
-              <Bot className="w-4 h-4 animate-spin" />
-            </div>
-            <div className="flex items-center gap-2 p-3 bg-white border border-[#b1b4b6] shadow-xs font-medium">
-              <Sparkles className="w-3.5 h-3.5 text-[#1d70b8] animate-pulse" />
-              <span>Searching Qdrant Cloud BAAI vectors &amp; synthesizing legal clearance response...</span>
-            </div>
-          </div>
-        )}
+        {/* 3. Slide-Over / Docked Case Dossier Sidebar */}
+        <AnimatePresence>
+          {isSidebarOpen && (
+            <motion.div
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-80 sm:w-96 border-l border-[#b1b4b6] bg-white z-10 flex flex-col shadow-lg overflow-y-auto"
+            >
+              <div className="p-3 bg-[#f8f8f8] border-b border-[#b1b4b6] flex items-center justify-between">
+                <span className="text-xs font-bold text-[#0b0c0c] flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-[#1d70b8]" />
+                  Active Case Dossier
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="p-1 text-[#505a5f] hover:text-[#0b0c0c] text-xs font-bold"
+                  title="Close Drawer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-4">
+                <SessionContextSidebar onClose={() => setIsSidebarOpen(false)} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* 4. Suggested Prompts (GDS Quick Inquiries) */}
-      <div className={`px-4 py-2.5 border-t border-[#b1b4b6] flex items-center gap-2 overflow-x-auto print:hidden ${
-        isIntl ? 'bg-[#f4f7fc]' : 'bg-[#f8f8f8]'
-      }`}>
-        <span className="text-xs text-[#0b0c0c] whitespace-nowrap font-bold flex items-center gap-1.5 mr-1">
-          <HelpCircle className="w-3.5 h-3.5 text-[#1d70b8]" />
+      {/* 4. Sleek Quick Inquiries Chips */}
+      <div className="px-4 py-2 border-t border-[#b1b4b6] bg-[#f8f8f8] flex items-center gap-2 overflow-x-auto print:hidden">
+        <span className="text-[11px] text-[#505a5f] whitespace-nowrap font-bold flex items-center gap-1 mr-1">
+          <HelpCircle className="w-3 h-3 text-[#1d70b8]" />
           <span>Quick Inquiries:</span>
         </span>
         {sampleQueries.map((sample, sIdx) => (
           <button
             key={sIdx}
             onClick={() => handleSend(sample)}
-            className="text-xs px-3.5 py-1.5 bg-white border border-[#b1b4b6] text-[#0b0c0c] whitespace-nowrap transition-all font-medium hover:border-[#1d70b8] hover:bg-[#f3f2f1] shadow-2xs"
+            className="text-[11px] px-2.5 py-1 bg-white border border-[#b1b4b6] text-[#0b0c0c] whitespace-nowrap font-medium hover:border-[#1d70b8] hover:bg-[#f3f2f1] transition-colors"
           >
             {sample}
           </button>
         ))}
       </div>
 
-      {/* 5. Input Bar with AudioRecorder */}
-      <div className="p-3.5 sm:p-4 bg-white border-t border-[#b1b4b6] flex items-center gap-2.5 print:hidden">
+      {/* 5. Minimalist Input Bar */}
+      <div className="p-3 sm:p-3.5 bg-white border-t border-[#b1b4b6] flex items-center gap-2 print:hidden">
         <AudioRecorder onTranscription={(transcription) => handleSend(transcription)} lang="en" />
 
         <div className="flex-1 relative flex items-center">
@@ -584,7 +524,7 @@ export const ChatContainer: React.FC = () => {
             onChange={(e) => setInputQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder={placeholderText}
-            className="w-full bg-[#f8f8f8] hover:bg-white focus:bg-white border-2 border-[#0b0c0c] px-4 py-2.5 text-sm text-[#0b0c0c] placeholder:text-[#505a5f] focus:outline-none focus:ring-4 focus:ring-[#ffdd00] transition-all shadow-xs"
+            className="w-full bg-[#f8f8f8] hover:bg-white focus:bg-white border border-[#b1b4b6] focus:border-[#0b0c0c] px-3.5 py-2 text-sm text-[#0b0c0c] placeholder:text-[#505a5f] focus:outline-none focus:ring-2 focus:ring-[#1d70b8] transition-all"
           />
         </div>
 
@@ -592,11 +532,11 @@ export const ChatContainer: React.FC = () => {
           type="button"
           onClick={() => handleSend()}
           disabled={!inputQuery.trim() || isLoading}
-          className="px-5 py-2.5 bg-[#00703c] hover:bg-[#005a30] text-white font-bold transition-all flex-shrink-0 disabled:opacity-40 shadow-xs flex items-center justify-center gap-1.5"
+          className="px-4 py-2 bg-[#00703c] hover:bg-[#005a30] text-white text-xs font-bold transition-all flex-shrink-0 disabled:opacity-40 shadow-xs flex items-center justify-center gap-1.5"
           aria-label="Send Query"
         >
           <span>Ask</span>
-          <Send className="w-4 h-4" />
+          <Send className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>
