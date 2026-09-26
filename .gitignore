@@ -19,6 +19,11 @@ Front_end/out/
 build/
 frontend/build/
 Front_end/build/
+frontend-modern/
+frontend-modern/node_modules/
+frontend-modern/.next/
+frontend-modern/out/
+frontend-modern/build/
 .pnp
 .pnp.js
 
