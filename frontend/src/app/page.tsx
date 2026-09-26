@@ -13,9 +13,11 @@ import { SessionHistory } from '@/components/history/SessionHistory';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
+import { getTranslations } from '@/lib/translations';
+
 export type ActiveWorkspaceTab = 'overview' | 'copilot' | 'prior-art' | 'dossier' | 'wizard' | 'abs' | 'history';
 
-const TAB_TITLES: Record<ActiveWorkspaceTab, string> = {
+const TAB_TITLES_EN: Record<ActiveWorkspaceTab, string> = {
   overview: 'Service Overview',
   copilot: 'Legal AI Copilot (Chat & Voice)',
   wizard: '1. Formulation Classification & Triage',
@@ -25,9 +27,22 @@ const TAB_TITLES: Record<ActiveWorkspaceTab, string> = {
   history: 'Saved Statutory Citations Vault'
 };
 
+const TAB_TITLES_HI: Record<ActiveWorkspaceTab, string> = {
+  overview: 'सेवा अवलोकन',
+  copilot: 'कानूनी AI सहायक (चैट व आवाज़)',
+  wizard: '1. फॉर्मूलेशन वर्गीकरण एवं ट्राइएज',
+  'prior-art': '2. सीएसआईआर-टीकेडीएल एवं धारा 3(p) पूर्व-कला जांच',
+  abs: '3. जैविक विविधता अधिनियम (BDA 2023) रॉयल्टी कैलकुलेटर',
+  dossier: '4. वैधानिक अनुपालन डोजियर एवं फाइलिंग रोडमैप',
+  history: 'सहेजे गए वैधानिक उद्धरण'
+};
+
 function MainWorkspace() {
   const searchParams = useSearchParams();
+  const { language } = useAppStore();
+  const t = getTranslations(language);
   const activeTab = (searchParams.get('tab') as ActiveWorkspaceTab) || 'overview';
+  const tabTitles = language === 'hi' ? TAB_TITLES_HI : TAB_TITLES_EN;
 
   const handleSelectTab = (tab: ActiveWorkspaceTab) => {
     const url = tab === 'overview' ? '/' : `/?tab=${tab}`;
@@ -40,9 +55,9 @@ function MainWorkspace() {
       {activeTab !== 'overview' && (
         <div className="flex items-center justify-between gap-3 text-xs text-[#505a5f] border-b border-[#b1b4b6] pb-3">
           <div className="flex items-center gap-1.5 flex-wrap font-medium">
-            <Link href="/" className="hover:underline text-[#1d70b8]">Home</Link>
+            <Link href="/" className="hover:underline text-[#1d70b8]">{t.home}</Link>
             <ChevronRight className="w-3.5 h-3.5 text-[#505a5f]" />
-            <span className="font-bold text-[#0b0c0c]">{TAB_TITLES[activeTab] || 'Tool'}</span>
+            <span className="font-bold text-[#0b0c0c]">{tabTitles[activeTab] || 'Tool'}</span>
           </div>
 
           <Link
@@ -50,7 +65,7 @@ function MainWorkspace() {
             className="text-xs font-bold text-[#1d70b8] hover:underline flex items-center gap-1"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Service Overview</span>
+            <span>{t.backToOverview}</span>
           </Link>
         </div>
       )}

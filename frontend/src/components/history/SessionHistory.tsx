@@ -9,544 +9,619 @@ import {
   Download, 
   Printer, 
   Scale, 
-  Trash2,
-  MessageSquare,
-  Bookmark,
-  Clock,
-  ShieldCheck,
+  Trash2, 
+  Bookmark, 
+  Clock, 
+  ShieldCheck, 
+  ChevronDown, 
+  ChevronUp, 
+  Copy, 
+  Check, 
+  MessageSquare, 
+  ArrowRight,
+  BookOpen,
   Filter,
-  CheckCircle2
+  CheckCircle2,
+  FileText
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
-import { StatutoryCitation } from '@/lib/types';
-
-// Canonical Statutory Repository of Common AYUSH Citations
-const CANONICAL_CITATIONS: StatutoryCitation[] = [
-  {
-    id: 'hist-cit-1',
-    act: 'The Patents Act, 1970',
-    section: 'Section 3(p)',
-    description: 'Statutory bar against patenting traditional knowledge or aggregations of traditionally known components.',
-    snippet: 'An invention which in effect, is traditional knowledge or which is an aggregation or duplication of known properties of traditionally known component or components is not an invention.',
-    url: 'https://www.ipindia.gov.in/patents.htm',
-    jurisdiction: 'IN',
-    source: 'canonical'
-  },
-  {
-    id: 'hist-cit-2',
-    act: 'The Patents Act, 1970',
-    section: 'Section 3(e)',
-    description: 'Mere admixture hurdle requiring pharmacological synergy data.',
-    snippet: 'A substance obtained by a mere admixture resulting only in the aggregation of the properties of the components thereof is not patentable.',
-    url: 'https://www.ipindia.gov.in/patents.htm',
-    jurisdiction: 'IN',
-    source: 'canonical'
-  },
-  {
-    id: 'hist-cit-3',
-    act: 'The Patents Act, 1970',
-    section: 'Section 3(d)',
-    description: 'Enhanced therapeutic efficacy threshold for new forms or extracts.',
-    snippet: 'The mere discovery of a new form of a known substance which does not result in the enhancement of the known efficacy of that substance is barred.',
-    url: 'https://www.ipindia.gov.in/patents.htm',
-    jurisdiction: 'IN',
-    source: 'canonical'
-  },
-  {
-    id: 'hist-cit-4',
-    act: 'Biological Diversity Act, 2002 (as amended 2023)',
-    section: 'Section 6',
-    description: 'Mandatory prior approval of the National Biodiversity Authority (NBA) before patent grant.',
-    snippet: 'No person shall apply for any intellectual property right based on biological resources obtained from India without previous approval of NBA.',
-    url: 'http://nbaindia.org/',
-    jurisdiction: 'IN',
-    source: 'canonical'
-  },
-  {
-    id: 'hist-cit-5',
-    act: 'Biological Diversity Act, 2002 (as amended 2023)',
-    section: 'Section 7',
-    description: 'Prior intimation to State Biodiversity Board and exemptions for codified Vaidyas.',
-    snippet: 'Commercial utilization requires intimation to SBB, but exempts registered Vaidyas and codified traditional healers.',
-    url: 'http://nbaindia.org/',
-    jurisdiction: 'IN',
-    source: 'canonical'
-  },
-  {
-    id: 'hist-cit-6',
-    act: 'Drugs and Cosmetics Rules, 1945',
-    section: 'Rule 158-B',
-    description: 'Proof of textual authority for classical Ayurvedic medicines versus P&P safety trials.',
-    snippet: 'Requires manufacturing to strictly follow First Schedule classical authoritative texts for classical drug licensing.',
-    url: 'https://cdsco.gov.in',
-    jurisdiction: 'IN',
-    source: 'canonical'
-  },
-  {
-    id: 'hist-cit-7',
-    act: 'Drugs and Cosmetics Rules, 1945',
-    section: 'Rule 122-E',
-    description: 'Definition and clinical regulatory pathway for Phytopharmaceutical drugs.',
-    snippet: 'Standardized purified fraction of medicinal plants with ≥4 bioactive markers eligible for pharmaceutical claims.',
-    url: 'https://cdsco.gov.in',
-    jurisdiction: 'IN',
-    source: 'canonical'
-  }
-];
+import { SavedResponseItem, StatutoryCitation } from '@/lib/types';
+import { MarkdownContent } from '@/components/chat/MarkdownContent';
+import { getTranslations } from '@/lib/translations';
 
 export const SessionHistory: React.FC = () => {
   const { 
-    setSelectedCitation, 
-    classificationState, 
-    priorArtAnalysis,
-    savedCitations,
-    removeSavedCitation,
-    clearSavedCitations,
-    chatMessages,
-    sessionId,
+    savedResponses, 
+    removeSavedResponse, 
+    clearSavedResponses,
+    setSelectedCitation,
+    language,
     hydrateFromStorage
   } = useAppStore();
 
-  const [scopeFilter, setScopeFilter] = useState<'all' | 'collected' | 'canonical'>('all');
-  const [filterAct, setFilterAct] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isConfirmingClearCitations, setIsConfirmingClearCitations] = useState(false);
+  const t = getTranslations(language);
+  const isHindi = language === 'hi';
 
-  // Client-side hydration from localStorage on mount
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterSection, setFilterSection] = useState('all');
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isConfirmingClear, setIsConfirmingClear] = useState(false);
+
+  // Client-side hydration from localStorage on mount (guarantees persistence across refresh)
   useEffect(() => {
     hydrateFromStorage();
   }, [hydrateFromStorage]);
 
-  // Combine canonical list with dynamically collected session citations, removing duplicates
-  const allCombinedCitations = React.useMemo(() => {
-    const list: StatutoryCitation[] = [...savedCitations];
-    CANONICAL_CITATIONS.forEach((canon) => {
-      const exists = list.some(
-        (c) => c.act.toLowerCase() === canon.act.toLowerCase() && c.section.toLowerCase() === canon.section.toLowerCase()
-      );
-      if (!exists) {
-        list.push(canon);
-      }
+  // Extract all unique sections across saved responses for filter chips
+  const allUniqueSections = React.useMemo(() => {
+    const set = new Set<string>();
+    savedResponses.forEach((sr) => {
+      (sr.sectionsDiscussed || []).forEach((sec) => set.add(sec));
     });
-    return list;
-  }, [savedCitations]);
+    return Array.from(set);
+  }, [savedResponses]);
 
-  // Determine source pool based on scopeFilter
-  const basePool = React.useMemo(() => {
-    if (scopeFilter === 'collected') return savedCitations;
-    if (scopeFilter === 'canonical') return CANONICAL_CITATIONS;
-    return allCombinedCitations;
-  }, [scopeFilter, savedCitations, allCombinedCitations]);
+  // Filtered responses by query and section
+  const filteredResponses = React.useMemo(() => {
+    return savedResponses.filter((sr) => {
+      const matchesSection = 
+        filterSection === 'all' || 
+        (sr.sectionsDiscussed || []).some((s) => s.toLowerCase() === filterSection.toLowerCase());
 
-  // Apply statute & query filters
-  const filteredCitations = basePool.filter((cit) => {
-    const matchesAct = filterAct === 'all' || cit.act.toLowerCase().includes(filterAct.toLowerCase());
-    const matchesQuery = 
-      cit.section.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cit.act.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cit.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (cit.snippet && cit.snippet.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesAct && matchesQuery;
-  });
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch = 
+        !q ||
+        sr.query.toLowerCase().includes(q) ||
+        sr.response.toLowerCase().includes(q) ||
+        (sr.sectionsDiscussed || []).some((s) => s.toLowerCase().includes(q)) ||
+        sr.timestamp.toLowerCase().includes(q);
 
-  const handleClearSaved = () => {
-    if (!isConfirmingClearCitations) {
-      setIsConfirmingClearCitations(true);
-      setTimeout(() => setIsConfirmingClearCitations(false), 4000);
+      return matchesSection && matchesSearch;
+    });
+  }, [savedResponses, filterSection, searchQuery]);
+
+  // Toggle expand/collapse for a specific row
+  const toggleRow = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleExpandAll = () => {
+    if (expandedIds.size === filteredResponses.length) {
+      setExpandedIds(new Set());
+    } else {
+      setExpandedIds(new Set(filteredResponses.map((r) => r.id)));
+    }
+  };
+
+  // Copy query + response text to clipboard
+  const handleCopy = (item: SavedResponseItem) => {
+    const textToCopy = `IP-SAKTI Statutory Consultation Record
+Date & Time: ${item.timestamp}
+Statutory Sections Discussed: ${(item.sectionsDiscussed || []).join(', ') || 'N/A'}
+
+[USER QUERY]
+${item.query}
+
+[STATUTORY ADVICE & OPINION]
+${item.response}
+`;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setCopiedId(item.id);
+      setTimeout(() => setCopiedId(null), 2500);
+    });
+  };
+
+  const handleClearAll = () => {
+    if (!isConfirmingClear) {
+      setIsConfirmingClear(true);
+      setTimeout(() => setIsConfirmingClear(false), 4000);
       return;
     }
-    clearSavedCitations();
-    setIsConfirmingClearCitations(false);
+    clearSavedResponses();
+    setIsConfirmingClear(false);
   };
 
   const handleExportJSON = () => {
-    const sessionLog = {
-      audit_meta: {
+    const exportPayload = {
+      export_meta: {
+        system: "IP-SAKTI Sahayak (SIH 045)",
         exported_at: new Date().toISOString(),
-        session_id: sessionId,
-        system_version: "IP-SAKTI Sahayak v1.0 (SIH 045)",
-        dpdp_anonymized: true
+        total_saved_records: savedResponses.length,
+        retention_guarantee: "Persistent Client Storage (No auto-wipe on refresh)",
+        compliance: "Indian DPDP Act 2023 Compliant"
       },
-      consultation_summary: {
-        total_messages: chatMessages.length,
-        total_saved_citations: savedCitations.length,
-        formulation_triage: classificationState || null,
-        prior_art_risk_analysis: priorArtAnalysis || null,
-      },
-      consultation_chat_history: chatMessages,
-      session_collected_citations: savedCitations,
-      canonical_statutory_repository: CANONICAL_CITATIONS
+      saved_citations_and_consultations: savedResponses,
     };
 
-    const blob = new Blob([JSON.stringify(sessionLog, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ip-sakti-statutory-audit-${Date.now()}.json`;
+    a.download = `ip-sakti-saved-citations-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
+  const handleInspectSection = (sectionName: string, item: SavedResponseItem) => {
+    // Check if this item has citation metadata
+    const matchedCitation = item.citations?.find((c) => 
+      c.section.toLowerCase().includes(sectionName.toLowerCase())
+    );
+
+    const citation: StatutoryCitation = matchedCitation || {
+      id: `cit_${sectionName.replace(/[^a-zA-Z0-9]/g, '_')}`,
+      act: sectionName.toLowerCase().includes('rule') ? 'Drugs and Cosmetics Rules, 1945' : 'The Patents Act, 1970',
+      section: sectionName,
+      description: `Statutory bar and compliance rule for ${sectionName}.`,
+      jurisdiction: 'IN',
+      source: 'user_saved'
+    };
+
+    setSelectedCitation(citation);
+  };
+
   return (
     <div className="w-full max-w-5xl mx-auto space-y-5">
-      {/* Header & Primary Controls */}
-      <div className="bg-white border-2 border-slate-300 border-t-4 border-t-[#002147] p-5 shadow-none flex flex-wrap items-center justify-between gap-4">
+      {/* 1. Header & Controls */}
+      <div className="bg-white border-2 border-[#b1b4b6] border-t-4 border-t-[#002147] p-5 flex flex-wrap items-center justify-between gap-4 shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-slate-100 border border-slate-300 text-[#002147]">
-            <BookMarked className="w-6 h-6 text-[#002147]" />
+          <div className="p-3 bg-[#002147] text-white">
+            <BookMarked className="w-6 h-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-blue-100 text-blue-900 border border-blue-300">
-                Audited Legal Corpus
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#eef4f9] text-[#002147] border border-[#1d70b8]/30">
+                {isHindi ? 'सहेजे गए उद्धरण वॉल्ट' : 'Saved Citations Vault'}
               </span>
-              <span className="text-[10px] font-bold text-emerald-900 bg-emerald-100 px-2 py-0.5 border border-emerald-400 flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-emerald-700" />
-                DPDP Anonymized
+              <span className="text-[10px] font-bold text-[#00703c] bg-[#eef7ee] px-2 py-0.5 border border-[#00703c]/40 flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-[#00703c]" />
+                {isHindi ? 'रिफ्रेश के बाद भी सुरक्षित' : 'Preserved on Refresh'}
               </span>
-              <span className="text-[10px] font-bold text-slate-800 bg-slate-100 px-2 py-0.5 border border-slate-300">
-                Client Vault Active
+              <span className="text-[10px] font-bold text-[#0b0c0c] bg-[#f3f2f1] px-2 py-0.5 border border-[#b1b4b6] font-mono">
+                {savedResponses.length} {isHindi ? 'परामर्श सहेजे गए' : 'Saved Consultations'}
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-[#002147] mt-0.5 tracking-tight">
-              Saved Citations & Session History
+
+            <h1 className="text-xl sm:text-2xl font-black text-[#002147] mt-1 tracking-tight">
+              {t.savedCitationsTitle}
             </h1>
-            <p className="text-xs text-slate-600 font-medium mt-0.5">
-              Live consultation statutory citations, verbatim clauses, and session transcripts recorded for your legal compliance audit.
+            <p className="text-xs text-[#505a5f] mt-0.5 leading-normal">
+              {t.savedCitationsSubtitle}
             </p>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 print:hidden">
-          {savedCitations.length > 0 && (
-            <button
-              type="button"
-              onClick={handleClearSaved}
-              className={`px-3 py-1.5 border text-xs font-bold flex items-center gap-1.5 transition-colors ${
-                isConfirmingClearCitations
-                  ? 'bg-red-700 text-white border-red-800 animate-pulse'
-                  : 'border-slate-400 hover:bg-red-50 text-slate-800 hover:text-red-700 bg-white'
-              }`}
-              title="Clear only citations collected during this session"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>{isConfirmingClearCitations ? 'Confirm Clear?' : 'Clear Session Citations'}</span>
-            </button>
+        {/* Global Toolbar Actions */}
+        <div className="flex items-center gap-2 print:hidden flex-wrap">
+          {savedResponses.length > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={handleExpandAll}
+                className="px-3 py-1.5 border border-[#b1b4b6] hover:bg-[#f3f2f1] text-xs font-bold text-[#0b0c0c] transition-colors bg-white"
+                title={expandedIds.size === filteredResponses.length ? 'Collapse all answers' : 'Expand all answers'}
+              >
+                {expandedIds.size === filteredResponses.length 
+                  ? (isHindi ? 'सभी संक्षिप्त करें' : 'Collapse All') 
+                  : (isHindi ? 'सभी उत्तर देखें' : 'Expand All')}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className={`px-3 py-1.5 border text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                  isConfirmingClear
+                    ? 'bg-[#d4351c] text-white border-[#d4351c] animate-pulse'
+                    : 'border-[#b1b4b6] hover:bg-red-50 text-[#0b0c0c] hover:text-[#d4351c] bg-white'
+                }`}
+                title="Clear all saved responses from storage"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{isConfirmingClear ? (isHindi ? 'निश्चित रूप से हटाएं?' : 'Confirm Clear?') : (isHindi ? 'सभी हटाएं' : 'Clear All')}</span>
+              </button>
+            </>
           )}
 
           <button
             type="button"
             onClick={handleExportJSON}
-            className="px-3 py-1.5 border border-slate-400 hover:bg-slate-100 text-xs font-bold text-slate-900 flex items-center gap-1.5 transition-colors bg-white shadow-none"
-            title="Download full session audit log, chat history & citations as JSON"
+            disabled={savedResponses.length === 0}
+            className="px-3 py-1.5 border border-[#b1b4b6] hover:bg-[#f3f2f1] text-xs font-bold text-[#0b0c0c] flex items-center gap-1.5 transition-colors bg-white disabled:opacity-40"
+            title="Download full saved consultations repository as JSON"
           >
-            <Download className="w-3.5 h-3.5 text-slate-700" />
-            <span>Export Audit JSON</span>
+            <Download className="w-3.5 h-3.5 text-[#505a5f]" />
+            <span>{isHindi ? 'JSON निर्यात' : 'Export JSON'}</span>
           </button>
 
           <button
             type="button"
             onClick={() => window.print()}
-            className="px-4 py-1.5 bg-[#002147] hover:bg-[#001733] text-white text-xs font-bold flex items-center gap-1.5 transition-colors border border-[#001733] shadow-none"
-            title="Print or save session as PDF dossier"
+            disabled={savedResponses.length === 0}
+            className="px-3 py-1.5 border border-[#b1b4b6] hover:bg-[#f3f2f1] text-xs font-bold text-[#0b0c0c] flex items-center gap-1.5 transition-colors bg-white disabled:opacity-40"
+            title="Print saved citations record"
           >
-            <Printer className="w-3.5 h-3.5 text-[#FF9933]" />
-            <span>Print / Save PDF</span>
+            <Printer className="w-3.5 h-3.5 text-[#505a5f]" />
+            <span>{isHindi ? 'प्रिंट' : 'Print'}</span>
           </button>
         </div>
       </div>
 
-      {/* Active Session Consultation Snapshot (4-Card Grid) */}
-      <div className="bg-white border-2 border-slate-300 p-5 shadow-none space-y-3.5">
-        <h3 className="text-xs font-black uppercase tracking-wider text-[#002147] flex items-center gap-2 border-b-2 border-slate-200 pb-2">
-          <Scale className="w-4 h-4 text-[#002147]" />
-          <span>Active Session Consultation Snapshot</span>
-        </h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
-          {/* Card 1: Triage Status */}
-          <div className="p-3.5 bg-[#f8f9fa] border border-slate-300 flex flex-col justify-between">
-            <div>
-              <span className="text-[10px] text-slate-600 font-bold uppercase tracking-wide block">Formulation Triage:</span>
-              <div className="font-bold text-slate-900 mt-0.5 line-clamp-1">
-                {classificationState?.category || 'Not Triaged (Step 1)'}
-              </div>
-              <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">
-                {classificationState?.statute || 'Launch wizard to classify product category'}
-              </p>
-            </div>
-            <Link href="/wizard" className="text-[10px] font-bold text-[#002147] hover:underline mt-2 inline-flex items-center gap-1">
-              <span>{classificationState ? 'Modify Triage' : 'Start Triage'}</span>
-              <ExternalLink className="w-2.5 h-2.5" />
-            </Link>
-          </div>
-
-          {/* Card 2: Prior-Art Risk Status */}
-          <div className="p-3.5 bg-[#f8f9fa] border border-slate-300 flex flex-col justify-between">
-            <div>
-              <span className="text-[10px] text-slate-600 font-bold uppercase tracking-wide block">TKDL Prior-Art Screening:</span>
-              <div className="font-bold text-slate-900 mt-0.5">
-                {priorArtAnalysis ? `Risk Score: ${priorArtAnalysis.patentability_risk_score}%` : 'Unscreened Formulation'}
-              </div>
-              <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">
-                {priorArtAnalysis?.overall_status || 'Screen ingredients against Section 3(p) Traditional Knowledge'}
-              </p>
-            </div>
-            <Link href="/?tab=prior-art" className="text-[10px] font-bold text-[#002147] hover:underline mt-2 inline-flex items-center gap-1">
-              <span>Inspect Prior-Art</span>
-              <ExternalLink className="w-2.5 h-2.5" />
-            </Link>
-          </div>
-
-          {/* Card 3: Consultation Session Audit (Option A & B metrics) */}
-          <div className="p-3.5 bg-blue-50/50 border border-blue-300 flex flex-col justify-between">
-            <div>
-              <span className="text-[10px] text-blue-950 font-bold uppercase tracking-wide block">Active Copilot Consultation:</span>
-              <div className="font-bold text-[#002147] mt-0.5 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5 text-[#002147]" />
-                <span>{chatMessages.length} Messages Logged</span>
-              </div>
-              <p className="text-[10px] text-blue-900 mt-1 font-medium">
-                <strong>{savedCitations.length} Citations</strong> auto-collected in active session.
-              </p>
-            </div>
-            <Link href="/" className="text-[10px] font-bold text-[#002147] hover:underline mt-2 inline-flex items-center gap-1">
-              <span>Return to Copilot</span>
-              <ExternalLink className="w-2.5 h-2.5" />
-            </Link>
-          </div>
-
-          {/* Card 4: Compliance Dossier Status */}
-          <div className="p-3.5 bg-[#f8f9fa] border border-slate-300 flex flex-col justify-between">
-            <div>
-              <span className="text-[10px] text-slate-600 font-bold uppercase tracking-wide block">Filing Dossier:</span>
-              <div className="font-bold text-emerald-900 mt-0.5">
-                Ready for Generation
-              </div>
-              <p className="text-[10px] text-slate-600 mt-1 font-medium">
-                Official statutory dossier formatted with all cited authorities.
-              </p>
-            </div>
-            <Link
-              href="/dossier"
-              className="text-[10px] font-bold text-[#002147] hover:underline mt-2 flex items-center gap-1"
-            >
-              <span>View Statutory Dossier</span>
-              <ExternalLink className="w-2.5 h-2.5" />
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Scope Selector, Filter & Search Bar */}
-      <div className="bg-white border-2 border-slate-300 p-4 shadow-none space-y-3 print:hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Scope Filter Tabs */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 border border-slate-300">
-            <button
-              type="button"
-              onClick={() => setScopeFilter('all')}
-              className={`px-3 py-1.5 text-xs font-bold transition-all border ${
-                scopeFilter === 'all'
-                  ? 'bg-[#002147] text-white border-[#002147]'
-                  : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              All Statutory Citations ({allCombinedCitations.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setScopeFilter('collected')}
-              className={`px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-1.5 border ${
-                scopeFilter === 'collected'
-                  ? 'bg-[#002147] text-white border-[#002147]'
-                  : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              <Bookmark className="w-3 h-3 text-[#FF9933]" />
-              <span>Session Collected ({savedCitations.length})</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setScopeFilter('canonical')}
-              className={`px-3 py-1.5 text-xs font-bold transition-all border ${
-                scopeFilter === 'canonical'
-                  ? 'bg-[#002147] text-white border-[#002147]'
-                  : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              Canonical Library ({CANONICAL_CITATIONS.length})
-            </button>
-          </div>
-
+      {/* 2. Filter & Search Controls (Visible when items exist) */}
+      {savedResponses.length > 0 && (
+        <div className="bg-[#f8f8f8] border border-[#b1b4b6] p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
           {/* Search Box */}
-          <div className="relative min-w-[240px]">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="w-3.5 h-3.5 text-[#505a5f] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search section, act or keyword..."
-              className="w-full text-xs px-3 py-1.5 pl-8 border-2 border-slate-400 bg-white text-slate-900 focus:border-[#002147] focus:outline-none"
+              placeholder={isHindi 
+                ? 'प्रश्न, उत्तर या धारा द्वारा खोजें (उदा. Section 3(p), अश्वगंधा)...' 
+                : 'Filter by question, response text, or section (e.g. Section 3(p), Ashwagandha)...'}
+              className="w-full pl-8 pr-3 py-1.5 bg-white border border-[#b1b4b6] text-xs text-[#0b0c0c] focus:outline-none focus:border-[#1d70b8]"
             />
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" />
           </div>
-        </div>
 
-        {/* Statute Specific Filter Pills */}
-        <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-slate-200">
-          <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
-            <Filter className="w-3 h-3 text-slate-500" />
-            <span>Filter Statute:</span>
-          </span>
-          {['all', 'Patents', 'Biological Diversity', 'Drugs and Cosmetics'].map((statute) => (
+          {/* Section Filter Pills */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-bold text-[#505a5f] flex items-center gap-1">
+              <Filter className="w-3 h-3 text-[#505a5f]" />
+              <span>{isHindi ? 'धारा:' : 'Section:'}</span>
+            </span>
+
             <button
-              key={statute}
               type="button"
-              onClick={() => setFilterAct(statute)}
-              className={`px-2.5 py-1 text-[11px] font-bold transition-colors border ${
-                filterAct === statute
+              onClick={() => setFilterSection('all')}
+              className={`px-2 py-1 text-[11px] font-bold transition-colors border ${
+                filterSection === 'all'
                   ? 'bg-[#002147] text-white border-[#002147]'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
+                  : 'bg-white text-[#0b0c0c] border-[#b1b4b6] hover:bg-[#f3f2f1]'
               }`}
             >
-              {statute === 'all' ? 'All Statutes' : statute}
+              {isHindi ? 'सभी' : 'All'} ({savedResponses.length})
             </button>
-          ))}
-        </div>
-      </div>
 
-      {/* Citations Table */}
-      <div className="bg-white border-2 border-slate-300 shadow-none overflow-hidden">
-        <div className="p-3.5 bg-slate-100 border-b-2 border-slate-300 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <h3 className="text-xs font-black uppercase tracking-wider text-[#002147]">
-              Statutory Legal Provisions & Clauses ({filteredCitations.length})
-            </h3>
-            {scopeFilter === 'collected' && (
-              <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-200 text-amber-950 border border-amber-400">
-                Live Consultation Collector Active
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] text-slate-600 font-bold">Click any clause to inspect verbatim statutory text</span>
-        </div>
-
-        {filteredCitations.length === 0 ? (
-          <div className="p-12 text-center text-slate-600 space-y-3">
-            <BookMarked className="w-8 h-8 text-slate-400 mx-auto" />
-            <div className="text-xs font-bold text-slate-800">
-              {scopeFilter === 'collected' 
-                ? 'No citations collected during this consultation session yet.' 
-                : 'No statutory clauses matched your search criteria.'}
-            </div>
-            <p className="text-[11px] text-slate-600 max-w-md mx-auto">
-              {scopeFilter === 'collected'
-                ? 'Whenever the AI Copilot references an Act or Section in your conversation, or when you click the bookmark button in chat, it will automatically appear here.'
-                : 'Try clearing your search query or selecting "All Statutes".'}
-            </p>
-            {scopeFilter === 'collected' && (
-              <Link
-                href="/"
-                className="inline-flex items-center gap-1 text-xs font-bold text-[#002147] hover:underline pt-2"
+            {allUniqueSections.map((sec) => (
+              <button
+                key={sec}
+                type="button"
+                onClick={() => setFilterSection(sec)}
+                className={`px-2 py-1 text-[11px] font-bold transition-colors border ${
+                  filterSection === sec
+                    ? 'bg-[#1d70b8] text-white border-[#1d70b8]'
+                    : 'bg-white text-[#0b0c0c] border-[#b1b4b6] hover:bg-[#f3f2f1]'
+                }`}
               >
-                <span>Go to AI Copilot</span>
-                <ExternalLink className="w-3 h-3" />
-              </Link>
-            )}
+                {sec}
+              </button>
+            ))}
           </div>
-        ) : (
+        </div>
+      )}
+
+      {/* 3. Tabular List of Saved Citations & Consultations */}
+      {filteredResponses.length > 0 ? (
+        <div className="bg-white border-2 border-[#b1b4b6] overflow-hidden shadow-2xs">
+          {/* Table Header */}
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-[#002147] text-white border-b-2 border-[#001733] font-bold">
-                  <th className="py-3 px-4 text-white border-r border-blue-900">Act & Legislation</th>
-                  <th className="py-3 px-4 text-white border-r border-blue-900">Section / Rule</th>
-                  <th className="py-3 px-4 text-white border-r border-blue-900">Provenance / Source</th>
-                  <th className="py-3 px-4 text-white border-r border-blue-900">Statutory Meaning & Impact</th>
-                  <th className="py-3 px-4 text-right text-white">Actions</th>
+                <tr className="bg-[#002147] text-white border-b border-[#002147]">
+                  <th className="py-3 px-4 font-bold tracking-wider w-[185px]">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-[#1d70b8]" />
+                      <span>{isHindi ? 'तारीख एवं समय' : 'Date & Time'}</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-4 font-bold tracking-wider">
+                    <div className="flex items-center gap-1.5">
+                      <MessageSquare className="w-3.5 h-3.5 text-[#1d70b8]" />
+                      <span>{isHindi ? 'उपयोगकर्ता का प्रश्न (Query)' : 'User Query'}</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-4 font-bold tracking-wider w-[220px]">
+                    <div className="flex items-center gap-1.5">
+                      <Scale className="w-3.5 h-3.5 text-[#1d70b8]" />
+                      <span>{isHindi ? 'चर्चा की गई धाराएं' : 'Sections Discussed'}</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-4 font-bold tracking-wider text-right w-[150px]">
+                    <span>{isHindi ? 'उत्तर एवं कार्रवाई' : 'Action'}</span>
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-300">
-                {filteredCitations.map((cit, idx) => {
-                  const isSessionItem = savedCitations.some(
-                    (s) => (s.id && cit.id && s.id === cit.id) ||
-                    (s.act.toLowerCase() === cit.act.toLowerCase() && s.section.toLowerCase() === cit.section.toLowerCase())
-                  );
+              <tbody className="divide-y divide-[#b1b4b6]">
+                {filteredResponses.map((item, idx) => {
+                  const isExpanded = expandedIds.has(item.id);
+                  const isCopied = copiedId === item.id;
 
                   return (
-                    <tr key={cit.id || idx} className="hover:bg-blue-50/50 transition-colors even:bg-slate-50">
-                      <td className="py-3 px-4 font-bold text-slate-900 max-w-[180px] border-r border-slate-200">
-                        <div>{cit.act}</div>
-                        {cit.jurisdiction && (
-                          <span className="text-[9px] font-mono text-slate-500">
-                            Jurisdiction: {cit.jurisdiction}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 font-mono font-bold text-[#002147] whitespace-nowrap border-r border-slate-200">
-                        {cit.section}
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap border-r border-slate-200">
-                        {isSessionItem ? (
-                          <div className="space-y-0.5">
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-400">
-                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-700" />
-                              <span>Session Collected</span>
-                            </span>
-                            {cit.collectedAt && (
-                              <div className="text-[9px] text-slate-600 flex items-center gap-1 font-semibold">
-                                <Clock className="w-2.5 h-2.5" />
-                                <span>{cit.collectedAt}</span>
-                              </div>
+                    <React.Fragment key={item.id}>
+                      {/* Main Tabular Row (Clickable) */}
+                      <tr 
+                        onClick={() => toggleRow(item.id)}
+                        className={`transition-colors cursor-pointer select-none group ${
+                          isExpanded 
+                            ? 'bg-[#eef4f9] border-l-4 border-l-[#1d70b8]' 
+                            : idx % 2 === 0 ? 'bg-white hover:bg-[#f8f8f8]' : 'bg-[#fafafa] hover:bg-[#f3f2f1]'
+                        }`}
+                      >
+                        {/* Column 1: Date & Time */}
+                        <td className="py-3.5 px-4 font-mono text-[11px] text-[#505a5f] whitespace-nowrap align-top">
+                          <div className="font-bold text-[#0b0c0c]">
+                            {item.timestamp.split(',')[0]}
+                          </div>
+                          <div className="text-[10px] text-[#505a5f]">
+                            {item.timestamp.split(',')[1] || ''}
+                          </div>
+                        </td>
+
+                        {/* Column 2: User Query */}
+                        <td className="py-3.5 px-4 align-top">
+                          <div className="font-bold text-xs sm:text-[13px] text-[#002147] group-hover:text-[#1d70b8] transition-colors leading-snug">
+                            {item.query}
+                          </div>
+                          {!isExpanded && (
+                            <div className="text-[11px] text-[#505a5f] line-clamp-1 mt-1 font-serif italic">
+                              {item.response.replace(/[#*`_]/g, '').slice(0, 140)}...
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Column 3: Sections Discussed */}
+                        <td className="py-3.5 px-4 align-top">
+                          <div className="flex flex-wrap gap-1">
+                            {item.sectionsDiscussed && item.sectionsDiscussed.length > 0 ? (
+                              item.sectionsDiscussed.map((sec, sIdx) => (
+                                <span
+                                  key={sIdx}
+                                  className="text-[10px] font-bold px-1.5 py-0.5 bg-white border border-[#1d70b8]/40 text-[#002147] font-mono shadow-2xs"
+                                >
+                                  {sec}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-[11px] text-[#505a5f] italic">
+                                General Law
+                              </span>
                             )}
                           </div>
-                        ) : (
-                          <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-200 text-slate-800 border border-slate-300">
-                            Canonical Library
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-slate-800 max-w-[320px] border-r border-slate-200">
-                        <div className="font-semibold">{cit.description}</div>
-                        {cit.snippet && (
-                          <div className="text-[11px] text-slate-600 italic mt-0.5 line-clamp-2">
-                            &ldquo;{cit.snippet}&rdquo;
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-right whitespace-nowrap">
-                        <div className="inline-flex items-center gap-1.5 justify-end">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedCitation(cit)}
-                            className="px-2.5 py-1 bg-white hover:bg-blue-50 border border-[#002147] text-[11px] font-bold text-[#002147] transition-colors inline-flex items-center gap-1"
-                            title="Inspect verbatim statutory clause"
-                          >
-                            <span>Inspect</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </button>
+                        </td>
 
-                          {isSessionItem && (
+                        {/* Column 4: View Response Button & Actions */}
+                        <td className="py-3.5 px-4 text-right align-top" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-1.5">
+                            {/* Toggle / View Response Button */}
                             <button
                               type="button"
-                              onClick={() => removeSavedCitation(cit.id || `${cit.act}::${cit.section}`)}
-                              className="p-1 text-slate-500 hover:text-red-700 hover:bg-red-50 transition-colors border border-transparent hover:border-red-300"
-                              title="Remove from saved session citations"
+                              onClick={() => toggleRow(item.id)}
+                              className={`px-2.5 py-1 text-xs font-bold border transition-colors inline-flex items-center gap-1 ${
+                                isExpanded
+                                  ? 'bg-[#002147] text-white border-[#002147]'
+                                  : 'bg-white text-[#1d70b8] border-[#b1b4b6] hover:border-[#1d70b8] hover:bg-[#f3f2f1]'
+                              }`}
+                              title={isExpanded ? 'Hide saved response' : 'Show full saved response'}
+                            >
+                              <span>{isExpanded ? (isHindi ? 'छिपाएं' : 'Hide') : (isHindi ? 'उत्तर देखें' : 'View')}</span>
+                              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                            </button>
+
+                            {/* Copy Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(item)}
+                              className="p-1.5 text-[#505a5f] hover:text-[#0b0c0c] border border-transparent hover:border-[#b1b4b6] transition-colors"
+                              title="Copy query and response"
+                            >
+                              {isCopied ? <Check className="w-3.5 h-3.5 text-[#00703c]" /> : <Copy className="w-3.5 h-3.5" />}
+                            </button>
+
+                            {/* Delete Button */}
+                            <button
+                              type="button"
+                              onClick={() => removeSavedResponse(item.id)}
+                              className="p-1.5 text-[#505a5f] hover:text-[#d4351c] border border-transparent hover:border-[#b1b4b6] transition-colors"
+                              title="Remove from saved citations"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Expanded View: Full Response Display (When User Clicks Row) */}
+                      {isExpanded && (
+                        <tr>
+                          <td colSpan={4} className="p-0 bg-[#f8f8f8] border-b border-[#b1b4b6]">
+                            <div className="p-5 sm:p-6 space-y-4 border-l-4 border-l-[#1d70b8] animate-in fade-in duration-150">
+                              {/* Query Banner */}
+                              <div className="p-3.5 bg-white border border-[#b1b4b6] space-y-1">
+                                <div className="flex items-center justify-between text-[11px] text-[#505a5f] pb-1 border-b border-[#e5e5e5]">
+                                  <span className="font-bold text-[#002147] uppercase tracking-wider flex items-center gap-1.5">
+                                    <MessageSquare className="w-3.5 h-3.5 text-[#1d70b8]" />
+                                    {isHindi ? 'पूछा गया प्रश्न (User Query)' : 'User Statutory Query'}
+                                  </span>
+                                  <span className="font-mono text-[10px] text-[#505a5f]">
+                                    Recorded on {item.timestamp}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-bold text-[#0b0c0c] pt-1">
+                                  {item.query}
+                                </p>
+                              </div>
+
+                              {/* Official Copilot Response in Full Markdown */}
+                              <div className="p-4 sm:p-5 bg-white border border-[#b1b4b6] space-y-3 shadow-2xs">
+                                <div className="flex items-center justify-between pb-2 border-b border-[#e5e5e5]">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 bg-[#002147] text-white flex items-center justify-center">
+                                      <Scale className="w-3.5 h-3.5" />
+                                    </div>
+                                    <span className="text-xs font-bold text-[#002147]">
+                                      {isHindi ? 'आईपी-शक्ति सहायक का वैधानिक उत्तर' : 'IP-SAKTI Sahayak Statutory Advice & Opinion'}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCopy(item)}
+                                      className="text-xs font-bold text-[#1d70b8] hover:underline flex items-center gap-1 cursor-pointer"
+                                    >
+                                      {isCopied ? (
+                                        <>
+                                          <Check className="w-3 h-3 text-[#00703c]" />
+                                          <span className="text-[#00703c]">{isHindi ? 'कॉपी हो गया!' : 'Copied!'}</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Copy className="w-3 h-3 text-[#1d70b8]" />
+                                          <span>{isHindi ? 'उत्तर कॉपी करें' : 'Copy Response'}</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div className="prose prose-slate max-w-none text-sm text-[#0b0c0c] leading-relaxed">
+                                  <MarkdownContent content={item.response} />
+                                </div>
+
+                                {/* Statutory Sections Discussed in this Response */}
+                                {item.sectionsDiscussed && item.sectionsDiscussed.length > 0 && (
+                                  <div className="mt-4 pt-3 border-t border-[#e5e5e5] flex flex-wrap items-center gap-2">
+                                    <span className="text-[11px] font-bold text-[#505a5f] uppercase tracking-wider">
+                                      {isHindi ? 'संदर्भित धाराएं:' : 'Cited Statutory Provisions:'}
+                                    </span>
+                                    {item.sectionsDiscussed.map((sec, sIdx) => (
+                                      <button
+                                        key={sIdx}
+                                        type="button"
+                                        onClick={() => handleInspectSection(sec, item)}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#eef4f9] border border-[#1d70b8]/40 text-[#002147] text-xs font-bold hover:bg-[#1d70b8] hover:text-white transition-colors cursor-pointer"
+                                        title={`Inspect official clause for ${sec}`}
+                                      >
+                                        <BookOpen className="w-3 h-3" />
+                                        <span>{sec}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Footer Actions for this expanded card */}
+                              <div className="flex items-center justify-between gap-3 text-xs pt-1">
+                                <Link
+                                  href="/?tab=copilot"
+                                  className="text-xs font-bold text-[#1d70b8] hover:underline inline-flex items-center gap-1"
+                                >
+                                  <span>{isHindi ? 'लीगल कोपायलट में नया प्रश्न पूछें' : 'Ask follow-up in Legal Copilot'}</span>
+                                  <ArrowRight className="w-3.5 h-3.5" />
+                                </Link>
+
+                                <button
+                                  type="button"
+                                  onClick={() => removeSavedResponse(item.id)}
+                                  className="text-xs font-bold text-[#505a5f] hover:text-[#d4351c] inline-flex items-center gap-1 transition-colors"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                  <span>{isHindi ? 'इस सहेजे गए परामर्श को हटाएं' : 'Delete this saved consultation'}</span>
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        /* Empty State */
+        <div className="bg-white border-2 border-[#b1b4b6] p-8 sm:p-12 text-center space-y-4">
+          <div className="w-14 h-14 mx-auto bg-[#eef4f9] border border-[#1d70b8]/30 flex items-center justify-center text-[#002147]">
+            <BookMarked className="w-7 h-7 text-[#1d70b8]" />
+          </div>
+
+          <div className="max-w-md mx-auto space-y-2">
+            <h3 className="text-base sm:text-lg font-bold text-[#002147]">
+              {searchQuery || filterSection !== 'all'
+                ? (isHindi ? 'कोई मेल खाता परिणाम नहीं मिला' : 'No matching saved responses')
+                : (isHindi ? 'कोई सहेजा गया उद्धरण या परामर्श नहीं है' : 'No Saved Citations or Consultations Yet')}
+            </h3>
+
+            <p className="text-xs text-[#505a5f] leading-relaxed">
+              {searchQuery || filterSection !== 'all'
+                ? (isHindi 
+                    ? 'कृपया अपने खोज शब्दों या फ़िल्टर को साफ़ करके पुनः प्रयास करें।' 
+                    : 'Try clearing your search query or section filter to view all saved items.')
+                : (isHindi
+                    ? 'कानूनी AI सहायक में किसी भी उत्तर के नीचे "यह उत्तर सहेजें" बटन पर क्लिक करें। आपका प्रश्न, उत्तर, दिनांक और चर्चा की गई कानूनी धाराएं यहाँ सुरक्षित रूप से सहेजी जाएंगी और पेज रिफ्रेश करने पर भी नहीं हटेंगी।'
+                    : 'While chatting in the Legal AI Copilot, click the "Save this response" button beneath any assistant answer. The query, response, timestamp, and cited statutory sections will be preserved here and will NOT be deleted upon refresh.')}
+            </p>
+          </div>
+
+          <div className="pt-2 flex items-center justify-center gap-3">
+            {searchQuery || filterSection !== 'all' ? (
+              <button
+                type="button"
+                onClick={() => { setSearchQuery(''); setFilterSection('all'); }}
+                className="px-4 py-2 bg-[#002147] text-white text-xs font-bold hover:bg-[#1d70b8] transition-colors"
+              >
+                {isHindi ? 'फ़िल्टर साफ़ करें' : 'Clear Filters'}
+              </button>
+            ) : (
+              <Link
+                href="/?tab=copilot"
+                className="px-5 py-2.5 bg-[#002147] text-white text-xs font-bold hover:bg-[#1d70b8] transition-colors inline-flex items-center gap-2"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>{isHindi ? 'लीगल AI कोपायलट खोलें' : 'Open Legal AI Copilot'}</span>
+              </Link>
+            )}
+          </div>
+
+          {/* Quick Informational Guide */}
+          <div className="mt-8 pt-6 border-t border-[#b1b4b6] max-w-xl mx-auto text-left space-y-2">
+            <span className="text-[11px] font-bold text-[#002147] uppercase tracking-wider">
+              {isHindi ? 'यह सुविधा कैसे काम करती है:' : 'How Saved Citations & Responses Work:'}
+            </span>
+            <ul className="text-xs text-[#505a5f] space-y-1.5 list-disc pl-4">
+              <li>
+                <strong>{isHindi ? 'सहेजें बटन:' : 'Save Response Button:'}</strong>{' '}
+                {isHindi 
+                  ? 'कोपायलट में प्रत्येक उत्तर के नीचे "यह उत्तर सहेजें" बटन पर क्लिक करने पर पूरा प्रश्न और उत्तर सहेजा जाता है।' 
+                  : 'Click "Save this response" in the chat to store both your question and the complete legal advice.'}
+              </li>
+              <li>
+                <strong>{isHindi ? 'स्थायी स्टोरेज:' : 'Persistence on Refresh:'}</strong>{' '}
+                {isHindi 
+                  ? 'सभी रिकॉर्ड ब्राउज़र के सुरक्षित स्टोरेज में रहते हैं और पेज रिफ्रेश होने पर डिलीट नहीं होते।' 
+                  : 'All saved entries are stored in localStorage and remain intact when you refresh or close the browser.'}
+              </li>
+              <li>
+                <strong>{isHindi ? 'विस्तारित दृश्य:' : 'Expandable Rows:'}</strong>{' '}
+                {isHindi 
+                  ? 'तारीख और प्रश्न पर क्लिक करने पर पूरा मार्कडाउन उत्तर और प्रासंगिक धाराएं खुलती हैं।' 
+                  : 'Click any row in the table above to expand and review the full statutory advice with citations.'}
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

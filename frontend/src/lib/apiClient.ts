@@ -91,7 +91,27 @@ export async function askLegalQuestion(
     confidenceScore: data.confidence_score ?? 0.95,
     requiresEscalation: data.requires_escalation ?? false,
     citations: parsedCitations,
+    detectedLanguage: data.detected_language === 'hi' ? 'hi' : 'en',
   };
+}
+
+export async function translateLegalText(text: string, targetLanguage: 'en' | 'hi'): Promise<string> {
+  const base = getApiBase();
+  const res = await fetch(`${base}/translate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      text,
+      target_language: targetLanguage,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Translation failed on backend with HTTP ${res.status} (${res.statusText})`);
+  }
+
+  const data = await res.json();
+  return data.translated_text || text;
 }
 
 export async function uploadVoiceRecording(blob: Blob): Promise<string> {

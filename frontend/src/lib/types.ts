@@ -12,6 +12,28 @@ export interface StatutoryCitation {
   source?: 'canonical' | 'chat_session' | 'user_saved';
 }
 
+export interface SavedResponseItem {
+  id: string;
+  query: string;
+  response: string;
+  timestamp: string;          // Formatted display date/time, e.g. "26 Sep 2026, 10:48 AM"
+  isoDate: string;            // ISO 8601 for reliable chronological sorting
+  sectionsDiscussed: string[]; // e.g. ["Section 3(p)", "Section 3(e)", "Section 6"]
+  citations?: StatutoryCitation[];
+  jurisdiction?: Jurisdiction;
+  detectedLanguage?: 'en' | 'hi';
+}
+
+export interface DiscussedSection {
+  id: string;
+  section: string;
+  act: string;
+  description: string;
+  count: number;
+  url?: string;
+  snippet?: string;
+}
+
 export interface ClassificationResult {
   category: string;
   title: string;
@@ -38,6 +60,9 @@ export interface ChatMessage {
   confidenceScore?: number;
   suggestClassification?: boolean;
   requiresEscalation?: boolean;
+  detectedLanguage?: 'en' | 'hi';
+  translatedText?: string;
+  isShowingTranslation?: boolean;
 }
 
 export interface AskRequest {

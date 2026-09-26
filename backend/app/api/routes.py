@@ -4,7 +4,7 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from pydantic import BaseModel, Field
 
 from app.core.security import DPDPComplianceEngine
-from app.services.agent import process_query_via_langgraph
+from app.services.agent import process_query_via_langgraph, translate_legal_text_via_groq
 from app.services.classification_engine import FormulationEngine, ClassificationInput, ClassificationResult
 from app.services.prior_art_service import PriorArtService, PriorArtAnalysisResult
 from app.services.dossier_service import DossierService, DossierResult
@@ -33,6 +33,19 @@ class AskResponse(BaseModel):
     confidence_score: float = 0.95
     requires_escalation: bool = False
     citations: List[Dict[str, Any]] = Field(default_factory=list)
+    detected_language: str = "en"
+
+
+class TranslateRequest(BaseModel):
+    text: str
+    target_language: str = "hi"
+    source_language: Optional[str] = None
+
+
+class TranslateResponse(BaseModel):
+    original_text: str
+    translated_text: str
+    target_language: str
 
 
 class PriorArtRequest(BaseModel):
@@ -81,7 +94,27 @@ async def ask_ip_assistant(request: AskRequest):
         confidence_score=result.get("confidence_score", 0.95),
         requires_escalation=result.get("requires_escalation", False),
         citations=result.get("citations", []),
+        detected_language=result.get("detected_language", "en"),
     )
+
+
+@router.post("/translate", response_model=TranslateResponse)
+async def translate_legal_memo(request: TranslateRequest):
+    """
+    Multilingual Indic Legal Translation powered by Groq LLM.
+    Translates complex statutory assessments and prior-art scrutiny memos between English and Hindi,
+    strictly preserving Markdown tables and bracketed citation notations like [Section 3(p)] / [धारा 3(p)].
+    """
+    try:
+        translated = translate_legal_text_via_groq(request.text, request.target_language)
+        return TranslateResponse(
+            original_text=request.text,
+            translated_text=translated,
+            target_language=request.target_language,
+        )
+    except Exception as e:
+        logger.error(f"Error handling translation request: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/classify", response_model=ClassificationResult)

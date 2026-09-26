@@ -2,234 +2,211 @@
 
 import React from 'react';
 import { 
-  RotateCcw, 
-  ArrowRight,
-  Printer,
-  FileText
+  Scale, 
+  ExternalLink, 
+  BookOpen, 
+  CheckCircle2, 
+  X,
+  FileText,
+  AlertCircle
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
-import { ActiveWorkspaceTab } from '@/app/page';
+import { extractDiscussedSections } from '@/lib/statutoryCatalog';
+import { StatutoryCitation } from '@/lib/types';
 
 interface SessionContextSidebarProps {
-  onSelectTab?: (tab: ActiveWorkspaceTab) => void;
   onClose?: () => void;
+  onSelectQuery?: (query: string) => void;
 }
 
-export const SessionContextSidebar: React.FC<SessionContextSidebarProps> = ({ onSelectTab, onClose }) => {
+export const SessionContextSidebar: React.FC<SessionContextSidebarProps> = ({ onClose, onSelectQuery }) => {
   const { 
-    classificationState, 
-    setClassificationState, 
-    priorArtAnalysis, 
-    absCalculation 
+    chatMessages, 
+    setSelectedCitation,
+    language
   } = useAppStore();
 
-  const handleClear = () => {
-    setClassificationState(null);
-  };
+  const isHindi = language === 'hi';
+  const discussedSections = React.useMemo(() => {
+    return extractDiscussedSections(chatMessages);
+  }, [chatMessages]);
 
-  const navigateTo = (tab: ActiveWorkspaceTab, fallbackHref: string) => {
-    if (onSelectTab) {
-      onSelectTab(tab);
-    } else {
-      window.location.href = fallbackHref;
-    }
+  const handleInspectSection = (sec: {
+    section: string;
+    act: string;
+    description: string;
+    snippet?: string;
+    url?: string;
+  }) => {
+    const citation: StatutoryCitation = {
+      id: `cit_${sec.section.replace(/[^a-zA-Z0-9]/g, '_')}`,
+      act: sec.act,
+      section: sec.section,
+      description: sec.description,
+      snippet: sec.snippet,
+      url: sec.url || 'https://ipindia.gov.in',
+      jurisdiction: 'IN',
+      source: 'chat_session',
+    };
+    setSelectedCitation(citation);
   };
 
   return (
-    <aside className="w-full bg-white border border-[#b1b4b6] p-5 space-y-5">
-      {/* Sidebar Header (GOV.UK Summary Header) */}
-      <div className="flex items-center justify-between border-b-2 border-[#0b0c0c] pb-2">
-        <div>
-          <h3 className="text-base font-bold text-[#0b0c0c]">
-            Active Case Summary
-          </h3>
-          <p className="text-xs text-[#505a5f]">
-            Statutory baseline for AI reasoning
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {classificationState && (
-            <button
-              type="button"
-              onClick={handleClear}
-              className="text-xs font-bold text-[#1d70b8] hover:underline flex items-center gap-1 cursor-pointer"
-              title="Reset active case dossier"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>Reset</span>
-            </button>
-          )}
+    <div className="w-full space-y-4">
+      {/* Header */}
+      <div className="border-b-2 border-[#0b0c0c] pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-[#002147] text-white">
+              <Scale className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-[#0b0c0c]">
+                  {isHindi ? 'चर्चा की गई धाराएं' : 'Sections Discussed'}
+                </h3>
+                <span className="text-[11px] font-bold px-2 py-0.2 bg-[#1d70b8] text-white rounded-full">
+                  {discussedSections.length}
+                </span>
+              </div>
+              <p className="text-[11px] text-[#505a5f]">
+                {isHindi 
+                  ? 'चैट में संदर्भित सभी वैधानिक प्रावधानों की सूची' 
+                  : 'Statutory provisions cited during this consultation'}
+              </p>
+            </div>
+          </div>
 
           {onClose && (
             <button
               type="button"
               onClick={onClose}
               className="p-1 text-[#505a5f] hover:text-[#0b0c0c] text-xs font-bold border border-transparent hover:border-[#b1b4b6]"
-              title="Close Case Summary"
+              title={isHindi ? 'बंद करें' : 'Close'}
             >
-              &times;
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Structured Summary Rows (GOV.UK Summary List Pattern) */}
-      <div className="space-y-4 text-xs">
-        {/* Row 1: Formulation Triage */}
-        <div className="border border-[#b1b4b6] p-3 space-y-2 bg-[#f3f2f1]/50">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-[#0b0c0c] uppercase tracking-wider text-[11px]">
-              1. Formulation Category
+      {/* When sections have been discussed */}
+      {discussedSections.length > 0 ? (
+        <div className="space-y-3">
+          <div className="p-2.5 bg-[#f3f2f1] border-l-4 border-[#1d70b8] text-[11px] text-[#0b0c0c] font-medium flex items-center justify-between">
+            <span>
+              {isHindi 
+                ? `${discussedSections.length} कानूनी धाराएं चर्चा में शामिल` 
+                : `${discussedSections.length} statutory section${discussedSections.length > 1 ? 's' : ''} catalogued`}
             </span>
-            {classificationState ? (
-              <span className="gds-tag gds-tag-green">TRIAGED</span>
-            ) : (
-              <span className="gds-tag gds-tag-yellow">PENDING</span>
-            )}
+            <span className="text-[10px] text-[#505a5f] font-mono">
+              Live Session
+            </span>
           </div>
 
-          {classificationState ? (
-            <div className="space-y-1">
-              <p className="font-bold text-[#0b0c0c] text-xs">
-                {classificationState.category}
-              </p>
-              <p className="text-[11px] text-[#505a5f] font-mono">
-                {classificationState.statute}
-              </p>
-              <button
-                type="button"
-                onClick={() => navigateTo('wizard', '/wizard')}
-                className="text-xs font-bold text-[#1d70b8] hover:underline pt-1 inline-block cursor-pointer"
+          <div className="space-y-2.5 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
+            {discussedSections.map((item, idx) => (
+              <div 
+                key={item.id || idx}
+                className="p-3 bg-white border border-[#b1b4b6] hover:border-[#1d70b8] transition-colors shadow-2xs space-y-2 group"
               >
-                Change category &rarr;
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-[#505a5f] leading-snug">
-                Not classified. Run Step 1 diagnostic to evaluate Section 3(p) exclusion risk.
-              </p>
-              <button
-                type="button"
-                onClick={() => navigateTo('wizard', '/wizard')}
-                className="gds-btn-primary w-full text-xs cursor-pointer"
-              >
-                Start Formulation Triage
-              </button>
-            </div>
-          )}
-        </div>
+                {/* Section title & count */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-xs text-[#002147] bg-[#eef4f9] px-2 py-0.5 border border-[#1d70b8]/30">
+                    {item.section}
+                  </span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#f3f2f1] text-[#505a5f] border border-[#e5e5e5]">
+                    {isHindi ? `${item.count} बार उद्धृत` : `Cited ${item.count}x`}
+                  </span>
+                </div>
 
-        {/* Row 2: TKDL & Section 3(p) Screening */}
-        <div className="border border-[#b1b4b6] p-3 space-y-2 bg-[#f3f2f1]/50">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-[#0b0c0c] uppercase tracking-wider text-[11px]">
-              2. TKDL Prior-Art
-            </span>
-            {priorArtAnalysis ? (
-              <span className={`gds-tag ${priorArtAnalysis.patentability_risk_score >= 80 ? 'gds-tag-red' : 'gds-tag-green'}`}>
-                RISK: {priorArtAnalysis.patentability_risk_score}%
-              </span>
-            ) : (
-              <span className="gds-tag gds-tag-grey">UNSCREENED</span>
-            )}
+                {/* Act Name */}
+                <p className="text-[11px] font-bold text-[#1d70b8]">
+                  {item.act}
+                </p>
+
+                {/* Description */}
+                <p className="text-xs text-[#0b0c0c] leading-relaxed">
+                  {item.description}
+                </p>
+
+                {/* Snippet quote if present */}
+                {item.snippet && (
+                  <blockquote className="text-[11px] italic text-[#505a5f] bg-[#f8f8f8] p-2 border-l-2 border-[#b1b4b6] leading-normal font-serif">
+                    &ldquo;{item.snippet}&rdquo;
+                  </blockquote>
+                )}
+
+                {/* Inspect Action */}
+                <div className="pt-1 border-t border-[#e5e5e5] flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => handleInspectSection(item)}
+                    className="text-[11px] font-bold text-[#1d70b8] hover:text-[#002147] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    <BookOpen className="w-3 h-3" />
+                    <span>{isHindi ? 'वैधानिक खंड देखें' : 'Inspect Statutory Clause'}</span>
+                  </button>
+
+                  {item.url && (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-[#505a5f] hover:text-[#0b0c0c] inline-flex items-center gap-0.5"
+                    >
+                      <span>Gov Source</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Empty State */
+        <div className="p-4 bg-[#f8f8f8] border border-[#b1b4b6] text-center space-y-3">
+          <div className="w-10 h-10 mx-auto bg-white border border-[#b1b4b6] flex items-center justify-center text-[#505a5f]">
+            <BookOpen className="w-5 h-5 text-[#1d70b8]" />
           </div>
 
-          {priorArtAnalysis ? (
-            <div className="space-y-1">
-              <p className="text-[#0b0c0c] font-medium leading-relaxed">
-                {priorArtAnalysis.statutory_summary}
-              </p>
-              <button
-                type="button"
-                onClick={() => navigateTo('prior-art', '/prior-art')}
-                className="text-xs font-bold text-[#1d70b8] hover:underline pt-1 inline-block cursor-pointer"
-              >
-                View full prior-art report ({priorArtAnalysis.tkdl_matches_count} hits) &rarr;
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-[#505a5f] leading-snug">
-                Screen herbs against Charaka/Sushruta classical texts.
-              </p>
-              <button
-                type="button"
-                onClick={() => navigateTo('prior-art', '/prior-art')}
-                className="gds-btn-secondary w-full text-xs cursor-pointer"
-              >
-                Run TKDL Prior-Art Screen
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Row 3: BDA 2023 ABS Liability */}
-        <div className="border border-[#b1b4b6] p-3 space-y-2 bg-[#f3f2f1]/50">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-[#0b0c0c] uppercase tracking-wider text-[11px]">
-              3. BDA 2023 ABS Fee
-            </span>
-            {absCalculation ? (
-              <span className="gds-tag gds-tag-green font-mono">
-                ₹{absCalculation.calculatedFee.toLocaleString('en-IN')}
-              </span>
-            ) : (
-              <span className="gds-tag gds-tag-grey">NOT COMPUTED</span>
-            )}
+          <div>
+            <h4 className="text-xs font-bold text-[#0b0c0c]">
+              {isHindi ? 'कोई धारा अभी तक चर्चा में नहीं आई है' : 'No Sections Discussed Yet'}
+            </h4>
+            <p className="text-[11px] text-[#505a5f] mt-1 leading-relaxed">
+              {isHindi
+                ? 'जैसे ही आप पेटेंट या जैव-संसाधन अनुपालन पर प्रश्न पूछेंगे, संदर्भित सभी वैधानिक धाराएं यहाँ वास्तविक समय में सूचीबद्ध होंगी।'
+                : 'As the AI Copilot references statutory bars and compliance rules during your consultation, they will automatically be catalogued here in real time.'}
+            </p>
           </div>
 
-          {absCalculation ? (
-            <div className="space-y-1">
-              <p className="text-[#505a5f]">
-                {absCalculation.statutoryRateDescription}
-              </p>
-              <button
-                type="button"
-                onClick={() => navigateTo('abs', '/abs-calculator')}
-                className="text-xs font-bold text-[#1d70b8] hover:underline pt-1 inline-block cursor-pointer"
-              >
-                Recalculate ABS rate &rarr;
-              </button>
+          <div className="pt-2 border-t border-[#e5e5e5] text-left">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#505a5f]">
+              {isHindi ? 'प्रमुख वैधानिक प्रावधान:' : 'Core Statutory Provisions Tracked:'}
+            </span>
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {[
+                { tag: 'Section 3(p)', desc: 'TKDL Bar' },
+                { tag: 'Section 3(e)', desc: 'Synergism' },
+                { tag: 'Section 3(d)', desc: 'Efficacy' },
+                { tag: 'Section 6', desc: 'NBA Clearance' },
+                { tag: 'Rule 158-B', desc: 'Ayurveda License' },
+                { tag: 'Rule 122-E', desc: 'Phytopharma' },
+              ].map((p) => (
+                <span
+                  key={p.tag}
+                  className="text-[10px] bg-white border border-[#b1b4b6] px-1.5 py-0.5 font-mono text-[#0b0c0c]"
+                  title={p.desc}
+                >
+                  {p.tag}
+                </span>
+              ))}
             </div>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-[#505a5f] leading-snug">
-                Check statutory 0.5% turnover fee or Section 7 Vaidya exemptions.
-              </p>
-              <button
-                type="button"
-                onClick={() => navigateTo('abs', '/abs-calculator')}
-                className="gds-btn-secondary w-full text-xs cursor-pointer"
-              >
-                Calculate ABS Liability
-              </button>
-            </div>
-          )}
+          </div>
         </div>
-
-        {/* Row 4: Action Buttons (GDS Start & Print Buttons) */}
-        <div className="pt-2 space-y-2 border-t border-[#b1b4b6]">
-          <button
-            type="button"
-            onClick={() => navigateTo('dossier', '/dossier')}
-            className="gds-btn-start w-full text-xs justify-center cursor-pointer"
-          >
-            <FileText className="w-4 h-4 text-white" />
-            <span>Generate Statutory Dossier</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="gds-btn-secondary w-full text-xs justify-center cursor-pointer"
-          >
-            <Printer className="w-4 h-4 text-[#0b0c0c]" />
-            <span>Print / Save View (PDF)</span>
-          </button>
-        </div>
-      </div>
-    </aside>
+      )}
+    </div>
   );
 };
