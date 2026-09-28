@@ -298,8 +298,8 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
         switch (block.type) {
           case 'table':
             return (
-              <div key={idx} className="my-3 overflow-x-auto rounded border border-slate-300 shadow-2xs bg-white">
-                <table className="w-full text-xs text-left border-collapse">
+              <div key={idx} className="my-3 overflow-x-auto rounded-xl border border-slate-200/90 shadow-2xs bg-white -mx-1 sm:mx-0 max-w-full touch-scroll touch-pan-x">
+                <table className="min-w-[420px] w-full text-xs text-left border-collapse">
                   <thead className="bg-[#002147] text-white">
                     <tr>
                       {block.headers.map((h, hIdx) => (

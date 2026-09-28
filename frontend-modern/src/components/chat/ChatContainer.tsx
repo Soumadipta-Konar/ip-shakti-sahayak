@@ -356,38 +356,38 @@ export const ChatContainer: React.FC = () => {
     : t.inputPlaceholder;
 
   return (
-    <div className="relative w-full flex flex-col bg-white rounded-3xl border border-slate-200/80 shadow-md overflow-hidden min-h-[700px]">
+    <div className="relative w-full flex flex-col bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-md overflow-hidden min-h-[calc(100dvh-175px)] sm:min-h-[700px]">
       {/* 1. Modern Enterprise Frosted Header Toolbar */}
-      <div className="px-4 sm:px-6 py-3.5 border-b border-slate-200/80 bg-slate-50/70 backdrop-blur-md flex flex-wrap items-center justify-between gap-3">
+      <div className="px-3 sm:px-6 py-2.5 sm:py-3.5 border-b border-slate-200/80 bg-slate-50/70 backdrop-blur-md flex flex-wrap items-center justify-between gap-2 sm:gap-3">
         {/* Left: Brand Identity & Vector Grounding Indicator */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-sky-500 text-white flex items-center justify-center shadow-xs">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-sky-500 text-white flex items-center justify-center shadow-xs flex-shrink-0">
             <Scale className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-extrabold text-slate-900 font-display">
+              <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 font-display">
                 {t.copilotTitle}
               </h2>
             </div>
-            <p className="text-[11px] text-slate-500 font-medium">
+            <p className="hidden sm:block text-[11px] text-slate-500 font-medium">
               Statutorily Grounded Citations &bull; CSIR-TKDL & Indian Patent Practice
             </p>
           </div>
         </div>
 
         {/* Right: Modern Segmented Switchers & Controls */}
-        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
           <JurisdictionToggle value={jurisdiction} onChange={setJurisdiction} />
 
           {/* UI Language Switcher Button */}
           <button
             type="button"
             onClick={toggleLanguage}
-            className="px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs cursor-pointer"
+            className="px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold rounded-xl flex items-center gap-1 sm:gap-1.5 transition-all bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs cursor-pointer flex-shrink-0"
             title={language === 'hi' ? 'Switch interface to English' : 'सम्पूर्ण इंटरफ़ेस को हिन्दी में बदलें'}
           >
-            <Globe className="w-3.5 h-3.5 text-indigo-600" />
+            <Globe className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-indigo-600" />
             <span>{t.languageButtonLabel}</span>
           </button>
 
@@ -395,16 +395,16 @@ export const ChatContainer: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-2xs cursor-pointer border ${
+            className={`px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold rounded-xl flex items-center gap-1.5 sm:gap-2 transition-all shadow-2xs cursor-pointer border flex-shrink-0 ${
               isSidebarOpen
                 ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300'
             }`}
             title={t.sectionsDiscussedTitle}
           >
-            <Layers className="w-3.5 h-3.5 text-slate-500" />
+            <Layers className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-500" />
             <span className="hidden sm:inline">{t.sectionsDiscussed}</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+            <span className={`text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
               discussedSections.length > 0 
                 ? isSidebarOpen ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200'
                 : 'bg-slate-100 text-slate-600'
@@ -417,10 +417,10 @@ export const ChatContainer: React.FC = () => {
           <button
             type="button"
             onClick={handlePrint}
-            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
             title={t.printRecord}
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
 
           {/* Reset Action */}
@@ -429,14 +429,14 @@ export const ChatContainer: React.FC = () => {
               <button
                 type="button"
                 onClick={handleClearHistory}
-                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold cursor-pointer"
+                className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[10px] sm:text-[11px] font-bold cursor-pointer"
               >
                 {language === 'hi' ? 'रीसेट' : 'Reset'}
               </button>
               <button
                 type="button"
                 onClick={() => setIsConfirmingClear(false)}
-                className="text-[11px] text-slate-500 hover:text-slate-800 px-1 cursor-pointer"
+                className="text-[10px] sm:text-[11px] text-slate-500 hover:text-slate-800 px-1 cursor-pointer"
               >
                 {language === 'hi' ? 'रद्द' : 'Cancel'}
               </button>
@@ -445,10 +445,10 @@ export const ChatContainer: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsConfirmingClear(true)}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               title={t.resetSession}
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           )}
         </div>
@@ -469,7 +469,7 @@ export const ChatContainer: React.FC = () => {
         </div>
 
         {/* Main Conversation Stream */}
-        <div className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 min-h-[460px] max-h-[640px] bg-slate-50/20">
+        <div className="relative z-10 flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 min-h-[420px] sm:min-h-[460px] max-h-[72dvh] sm:max-h-[640px] bg-slate-50/20 touch-scroll">
           {chatMessages.map((msg, msgIdx) => {
             const isShowingTranslation = !!msg.isShowingTranslation;
             const displayedText = (isShowingTranslation && msg.translatedText) ? msg.translatedText : msg.text;
@@ -497,14 +497,14 @@ export const ChatContainer: React.FC = () => {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.18 }}
-                className={`flex items-start gap-3.5 ${
+                className={`flex items-start gap-2.5 sm:gap-3.5 ${
                   msg.sender === 'user' ? 'justify-end max-w-4xl ml-auto' : 'justify-start max-w-4xl'
                 }`}
               >
                 {/* Assistant Avatar */}
                 {msg.sender === 'assistant' && (
-                  <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-purple-700 to-indigo-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm mt-1">
-                    <Sparkles className="w-4 h-4" />
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-purple-700 to-indigo-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm mt-1">
+                    <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                 )}
 
@@ -513,9 +513,9 @@ export const ChatContainer: React.FC = () => {
                   className={`transition-all ${
                     msg.sender === 'user'
                       ? isOutDomainError
-                        ? 'max-w-[85%] sm:max-w-[78%] p-4 sm:p-5 rounded-3xl rounded-tr-xs bg-red-50/50 text-red-950 border border-red-200/80 shadow-2xs'
-                        : 'max-w-[85%] sm:max-w-[78%] p-4 sm:p-5 rounded-3xl rounded-tr-xs bg-purple-50/60 text-purple-950 border border-purple-200/80 shadow-2xs'
-                      : 'flex-1 p-5 sm:p-6 rounded-3xl rounded-tl-xs bg-white border border-slate-200/90 shadow-sm text-slate-800 space-y-3.5'
+                        ? 'max-w-[90%] sm:max-w-[78%] p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl rounded-tr-xs bg-red-50/50 text-red-950 border border-red-200/80 shadow-2xs'
+                        : 'max-w-[90%] sm:max-w-[78%] p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl rounded-tr-xs bg-purple-50/60 text-purple-950 border border-purple-200/80 shadow-2xs'
+                      : 'flex-1 p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl rounded-tl-xs bg-white border border-slate-200/90 shadow-sm text-slate-800 space-y-3 sm:space-y-3.5 max-w-full overflow-hidden'
                   }`}
                 >
                   {/* Subtle Message Meta */}
@@ -584,13 +584,13 @@ export const ChatContainer: React.FC = () => {
 
                   {/* Assistant Footer Toolbar: Listen, Translate, Save this Response, Grounding, Escalate */}
                   {msg.sender === 'assistant' && (
-                    <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-500 print:hidden">
-                      <div className="flex items-center gap-2 flex-wrap">
+                    <div className="pt-2.5 sm:pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 text-xs text-slate-500 print:hidden">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                         {/* Listen Button */}
                         <button
                           type="button"
                           onClick={() => handleToggleSpeech(msg.id, displayedText)}
-                          className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                          className={`inline-flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                             speakingMessageId === msg.id 
                               ? 'bg-rose-50 text-rose-700 border-rose-200' 
                               : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/80'
@@ -598,12 +598,12 @@ export const ChatContainer: React.FC = () => {
                         >
                           {speakingMessageId === msg.id ? (
                             <>
-                              <VolumeX className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
+                              <VolumeX className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-rose-600 animate-pulse" />
                               <span>{t.stopAction}</span>
                             </>
                           ) : (
                             <>
-                              <Volume2 className="w-3.5 h-3.5 text-slate-500" />
+                              <Volume2 className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-500" />
                               <span>{t.listenAction}</span>
                             </>
                           )}
@@ -614,10 +614,10 @@ export const ChatContainer: React.FC = () => {
                           type="button"
                           disabled={translatingMsgId === msg.id}
                           onClick={() => handleToggleMessageTranslation(msg)}
-                          className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-indigo-50 text-indigo-700 border border-slate-200/80 hover:border-indigo-200 transition-all cursor-pointer disabled:opacity-50"
+                          className="inline-flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-indigo-50 text-indigo-700 border border-slate-200/80 hover:border-indigo-200 transition-all cursor-pointer disabled:opacity-50"
                           title={isShowingTranslation ? t.showOriginal : (isHindiMessage ? t.translateToEnglish : t.translateToHindi)}
                         >
-                          <Languages className={`w-3.5 h-3.5 text-indigo-600 ${translatingMsgId === msg.id ? 'animate-spin' : ''}`} />
+                          <Languages className={`w-3 sm:w-3.5 h-3 sm:h-3.5 text-indigo-600 ${translatingMsgId === msg.id ? 'animate-spin' : ''}`} />
                           <span>
                             {translatingMsgId === msg.id
                               ? t.translatingMessage
@@ -633,7 +633,7 @@ export const ChatContainer: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleToggleSaveResponse(msg, msgIdx)}
-                          className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-lg border transition-all cursor-pointer ${
+                          className={`inline-flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold px-2 sm:px-3 py-1 rounded-lg border transition-all cursor-pointer ${
                             isSaved
                               ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-2xs'
                               : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90 hover:border-slate-300'
@@ -642,12 +642,12 @@ export const ChatContainer: React.FC = () => {
                         >
                           {isSaved ? (
                             <>
-                              <BookmarkCheck className="w-3.5 h-3.5 text-emerald-600" />
+                              <BookmarkCheck className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-emerald-600" />
                               <span>{t.savedResponse}</span>
                             </>
                           ) : (
                             <>
-                              <Bookmark className="w-3.5 h-3.5 text-slate-500" />
+                              <Bookmark className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-500" />
                               <span>{t.saveThisResponse}</span>
                             </>
                           )}
@@ -657,10 +657,10 @@ export const ChatContainer: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handlePrintSingleResponse(msg, msgIdx)}
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-all cursor-pointer shadow-2xs"
+                          className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-lg border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-all cursor-pointer shadow-2xs"
                           title={language === 'hi' ? 'यह कानूनी उत्तर प्रिंट करें' : 'Print this statutory response'}
                         >
-                          <Printer className="w-3.5 h-3.5 text-slate-500" />
+                          <Printer className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-500" />
                           <span>{language === 'hi' ? 'प्रिंट' : 'Print'}</span>
                         </button>
 
@@ -678,9 +678,9 @@ export const ChatContainer: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setIsEscalationOpen(true)}
-                        className="text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors cursor-pointer shadow-2xs"
+                        className="text-[11px] sm:text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 px-2 sm:px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors cursor-pointer shadow-2xs"
                       >
-                        <ShieldAlert className="w-3.5 h-3.5 text-slate-500" />
+                        <ShieldAlert className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-500" />
                         <span>{t.escalateAction}</span>
                       </button>
                     </div>
@@ -689,12 +689,12 @@ export const ChatContainer: React.FC = () => {
 
                 {/* User Avatar */}
                 {msg.sender === 'user' && (
-                  <div className={`w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xs mt-1 ${
+                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xs mt-1 ${
                     isOutDomainError
                       ? 'bg-red-50 border border-red-200 text-red-700'
                       : 'bg-purple-50 border border-purple-200 text-purple-800'
                   }`}>
-                    <User className="w-4 h-4" />
+                    <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                 )}
               </motion.div>
@@ -703,12 +703,12 @@ export const ChatContainer: React.FC = () => {
 
           {/* Loading Animation */}
           {isLoading && (
-            <div className="flex items-center gap-3 text-slate-500 text-xs">
-              <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shadow-xs">
+            <div className="flex items-center gap-2.5 text-slate-500 text-xs">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shadow-xs">
                 <Bot className="w-4 h-4 animate-spin" />
               </div>
-              <div className="flex items-center gap-2.5 px-4 py-3 bg-white border border-slate-200/90 rounded-2xl shadow-xs text-xs font-medium text-slate-700">
-                <Sparkles className="w-4 h-4 text-violet-600 animate-pulse" />
+              <div className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs text-xs font-medium text-slate-700">
+                <Sparkles className="w-3.5 h-3.5 text-violet-600 animate-pulse" />
                 <span>{t.searchingAdvice}</span>
               </div>
             </div>
@@ -723,7 +723,7 @@ export const ChatContainer: React.FC = () => {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: '100%', opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="w-80 sm:w-96 border-l border-slate-200/80 bg-white z-20 flex flex-col shadow-xl overflow-y-auto"
+              className="w-full sm:w-80 md:w-96 border-l border-slate-200/80 bg-white z-20 flex flex-col shadow-xl overflow-y-auto"
             >
               <div className="p-4 sm:p-5 h-full">
                 <SessionContextSidebar 
@@ -737,9 +737,9 @@ export const ChatContainer: React.FC = () => {
       </div>
 
       {/* 4. Quick Suggested Prompts Strip */}
-      <div className="px-4 sm:px-6 py-2.5 border-t border-slate-200/80 bg-slate-50/80 flex items-center gap-2 overflow-x-auto print:hidden">
-        <span className="text-[11px] text-slate-400 whitespace-nowrap font-bold flex items-center gap-1 mr-1">
-          <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+      <div className="px-3 sm:px-6 py-2 border-t border-slate-200/80 bg-slate-50/80 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar touch-scroll print:hidden">
+        <span className="text-[10px] sm:text-[11px] text-slate-400 whitespace-nowrap font-bold flex items-center gap-1 mr-1 flex-shrink-0">
+          <HelpCircle className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400" />
           <span>{t.quickInquiries}</span>
         </span>
         {sampleQueries.map((sample, sIdx) => (
@@ -747,7 +747,7 @@ export const ChatContainer: React.FC = () => {
             key={sIdx}
             type="button"
             onClick={() => handleSend(sample)}
-            className="text-xs px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 rounded-xl whitespace-nowrap font-medium transition-all shadow-2xs cursor-pointer"
+            className="text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 rounded-xl whitespace-nowrap font-medium transition-all shadow-2xs cursor-pointer flex-shrink-0"
           >
             {sample}
           </button>
@@ -755,7 +755,7 @@ export const ChatContainer: React.FC = () => {
       </div>
 
       {/* 5. Minimalist Enterprise Floating Input Composer */}
-      <div className="p-3 sm:p-4 bg-white border-t border-slate-200/80 flex items-center gap-2.5 print:hidden">
+      <div className="p-2 sm:p-3 sm:p-4 bg-white border-t border-slate-200/80 flex items-center gap-1.5 sm:gap-2.5 print:hidden">
         <AudioRecorder 
           onTranscription={(transcription) => handleSend(transcription)} 
           lang={language === 'hi' ? 'hi' : 'en'} 
@@ -768,7 +768,7 @@ export const ChatContainer: React.FC = () => {
             onChange={(e) => setInputQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder={placeholderText}
-            className="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-600 rounded-2xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-600/20 transition-all shadow-inner"
+            className="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-600 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-600/20 transition-all shadow-inner"
           />
         </div>
 
@@ -776,7 +776,7 @@ export const ChatContainer: React.FC = () => {
           type="button"
           onClick={() => handleSend()}
           disabled={!inputQuery.trim() || isLoading}
-          className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all flex-shrink-0 disabled:opacity-40 shadow-md shadow-indigo-500/20 flex items-center justify-center cursor-pointer"
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all flex-shrink-0 disabled:opacity-40 shadow-md shadow-indigo-500/20 flex items-center justify-center cursor-pointer"
           aria-label={t.askButton}
         >
           <Send className="w-4 h-4" />

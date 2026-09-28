@@ -248,11 +248,11 @@ export const FormulationWizard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6"
       >
-        <div className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 shadow-md relative overflow-hidden">
+        <div className="p-4 sm:p-8 rounded-2xl bg-white border border-slate-200 shadow-md relative overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
             <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 uppercase tracking-wider">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Statutory Classification Complete &bull; Case Dossier Generated</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <span className="leading-snug">Statutory Classification Complete &bull; Case Dossier Generated</span>
             </div>
             <button
               type="button"
@@ -265,18 +265,18 @@ export const FormulationWizard: React.FC = () => {
             </button>
           </div>
 
-          <h3 className="text-xl sm:text-2xl font-black text-[#002147] mb-1">
+          <h3 className="text-lg sm:text-2xl font-black text-[#002147] mb-1">
             {category}
           </h3>
 
-          <p className="text-xs text-slate-500 font-mono mb-6">
+          <p className="text-[11px] sm:text-xs text-slate-500 font-mono mb-4 sm:mb-6">
             Statutory Regime: {statute}
           </p>
 
           {/* Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {/* Patentability Posture */}
-            <div className={`p-4 rounded-xl border ${patentRiskClass}`}>
+            <div className={`p-3.5 sm:p-4 rounded-xl border ${patentRiskClass}`}>
               <div className="flex items-center gap-2 mb-2 font-bold text-xs">
                 <ShieldAlert className="w-4 h-4 flex-shrink-0" />
                 <span>Patents Act 1970 Assessment</span>
@@ -287,7 +287,7 @@ export const FormulationWizard: React.FC = () => {
             </div>
 
             {/* Biodiversity / ABS Posture */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800">
               <div className="flex items-center gap-2 mb-2 font-bold text-xs text-emerald-800">
                 <Leaf className="w-4 h-4 flex-shrink-0 text-emerald-600" />
                 <span>Biodiversity Act (BDA 2023) Posture</span>
@@ -298,7 +298,7 @@ export const FormulationWizard: React.FC = () => {
             </div>
 
             {/* Licensing & Clinical Authority */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800">
               <div className="flex items-center gap-2 mb-2 font-bold text-xs text-blue-900">
                 <Stethoscope className="w-4 h-4 flex-shrink-0 text-blue-700" />
                 <span>Regulator & Clinical Norms</span>
@@ -308,7 +308,7 @@ export const FormulationWizard: React.FC = () => {
             </div>
 
             {/* Export & International Clearance */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800">
               <div className="flex items-center gap-2 mb-2 font-bold text-xs text-indigo-900">
                 <Globe2 className="w-4 h-4 flex-shrink-0 text-indigo-700" />
                 <span>Export & Global Clearance</span>
@@ -320,11 +320,11 @@ export const FormulationWizard: React.FC = () => {
           </div>
 
           {/* Action Row */}
-          <div className="mt-8 pt-6 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 print:hidden">
+          <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 print:hidden">
             <button
               type="button"
               onClick={restartTriage}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 flex items-center gap-2 transition-all"
+              className="px-3 sm:px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Start New Diagnostic Triage</span>
@@ -341,7 +341,7 @@ export const FormulationWizard: React.FC = () => {
                     jurisdiction: 'IN',
                   });
                 }}
-                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-300"
+                className="px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-300 cursor-pointer"
               >
                 <FileText className="w-3.5 h-3.5" />
                 <span>Statute Inspector</span>
@@ -350,19 +350,19 @@ export const FormulationWizard: React.FC = () => {
               <button
                 type="button"
                 onClick={handlePrintWizardResult}
-                className="px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#002147] text-xs font-bold border border-blue-300 shadow-2xs flex items-center gap-2 transition-all cursor-pointer"
+                className="px-3 sm:px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#002147] text-xs font-bold border border-blue-300 shadow-2xs flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer"
                 title="Download or Print Statutory Dossier as PDF"
               >
-                <Printer className="w-4 h-4 text-blue-700" />
+                <Printer className="w-3.5 h-3.5 text-blue-700" />
                 <span>Download / Print PDF</span>
               </button>
 
               <Link
                 href="/?tab=copilot"
-                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+                className="px-4 sm:px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs flex items-center gap-2 transition-all cursor-pointer"
               >
-                <MessageSquare className="w-4 h-4 text-indigo-400" />
-                <span>Proceed to Statutory AI Copilot with this Case Dossier &rarr;</span>
+                <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Proceed to AI Copilot <span className="hidden sm:inline">with this Case Dossier</span> &rarr;</span>
               </Link>
             </div>
           </div>
@@ -372,7 +372,7 @@ export const FormulationWizard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto w-full p-4 sm:p-6">
+    <div className="max-w-3xl mx-auto w-full p-2 sm:p-6">
       {/* Header Description */}
       <div className="mb-6 text-center">
         <span className="inline-block px-3 py-1 rounded-full text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 mb-2">

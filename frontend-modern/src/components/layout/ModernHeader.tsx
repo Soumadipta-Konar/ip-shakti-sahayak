@@ -87,55 +87,58 @@ function ModernNavContent() {
   return (
     <div className="w-full">
       {/* Primary Top Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brandmark */}
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-sky-500 p-0.5 shadow-md shadow-indigo-500/15 group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
-                <Scale className="w-5 h-5 text-indigo-700" />
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-sky-500 p-0.5 shadow-md shadow-indigo-500/15 group-hover:scale-105 transition-transform flex-shrink-0">
+              <div className="w-full h-full bg-white rounded-[10px] sm:rounded-[14px] flex items-center justify-center">
+                <Scale className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-700" />
               </div>
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg text-slate-900 tracking-tight font-display">
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight font-display">
                   IP-SAKTI
                 </span>
+                <span className="sm:hidden text-[9px] font-mono px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 font-bold border border-indigo-100">
+                  AI
+                </span>
               </div>
-              <p className="text-[11px] text-slate-500 font-medium">
+              <p className="hidden sm:block text-[11px] text-slate-500 font-medium">
                 {isHi ? 'वैधानिक पेटेंट आसूचना मंच' : 'Statutory Patent & Bio-Resource Intelligence'}
               </p>
             </div>
           </Link>
-
-
         </div>
 
         {/* Global Controls: Jurisdiction & Language */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           {/* Jurisdiction Toggle Switch */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 text-xs font-semibold">
+          <div className="flex items-center bg-slate-100 p-0.5 sm:p-1 rounded-xl border border-slate-200/80 text-xs font-semibold">
             <button
               type="button"
               onClick={() => setJurisdiction('IN')}
-              className={`px-3 py-1 rounded-lg transition-all ${
+              className={`px-2 sm:px-3 py-1 rounded-lg transition-all text-[11px] sm:text-xs cursor-pointer ${
                 jurisdiction === 'IN'
                   ? 'bg-white text-slate-900 shadow-xs font-bold'
                   : 'text-slate-500 hover:text-slate-900'
               }`}
+              title="Indian Jurisdiction"
             >
-              🇮🇳 {isHi ? 'भारतीय कानून' : 'India Law'}
+              🇮🇳 <span className="hidden sm:inline">{isHi ? 'भारतीय कानून' : 'India Law'}</span><span className="sm:hidden font-bold">IN</span>
             </button>
             <button
               type="button"
               onClick={() => setJurisdiction('INTL')}
-              className={`px-3 py-1 rounded-lg transition-all ${
+              className={`px-2 sm:px-3 py-1 rounded-lg transition-all text-[11px] sm:text-xs cursor-pointer ${
                 jurisdiction === 'INTL'
                   ? 'bg-white text-slate-900 shadow-xs font-bold'
                   : 'text-slate-500 hover:text-slate-900'
               }`}
+              title="Global WIPO/PCT Jurisdiction"
             >
-              🌐 {isHi ? 'वैश्विक WIPO' : 'Global Law'}
+              🌐 <span className="hidden sm:inline">{isHi ? 'वैश्विक WIPO' : 'Global Law'}</span><span className="sm:hidden font-bold">WIPO</span>
             </button>
           </div>
 
@@ -143,74 +146,98 @@ function ModernNavContent() {
           <button
             type="button"
             onClick={toggleLanguage}
-            className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 text-[11px] sm:text-xs font-bold transition-colors flex items-center gap-1 sm:gap-1.5 shadow-2xs cursor-pointer flex-shrink-0"
             title={language === 'hi' ? 'Switch interface to English' : 'इंटरफ़ेस को हिन्दी में बदलें'}
           >
-            <Globe className="w-3.5 h-3.5 text-indigo-600" />
-            <span>{language === 'hi' ? 'English' : 'हिन्दी'}</span>
+            <Globe className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-indigo-600" />
+            <span>{language === 'hi' ? 'EN' : 'हिन्दी'}</span>
           </button>
         </div>
       </div>
 
-      {/* Modern Navigation Ribbon */}
-      <div className="border-t border-slate-200/80 bg-white/70 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-4 overflow-x-auto">
+      {/* Modern Navigation Ribbon with Smooth Mobile Scrolling */}
+      <div className="border-t border-slate-200/80 bg-white/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 flex flex-col">
           {/* Main Workspace Navigation */}
-          <nav className="flex items-center gap-1.5 py-2 text-xs font-medium">
-            {mainTabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <StatutoryTooltip 
-                  key={tab.id} 
-                  termId={tab.tooltipId}
-                  customTitle={tab.tooltipTitle}
-                  customContent={tab.tooltipContent}
-                >
-                  <Link
-                    href={tab.href}
-                    className={`px-3.5 py-1.5 rounded-xl flex items-center gap-2 transition-all select-none ${
-                      tab.isActive
-                        ? tab.activeClass
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 border border-transparent'
-                    }`}
+          <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar touch-scroll py-1.5 sm:py-2">
+            <nav className="flex items-center gap-1 sm:gap-1.5 text-xs font-medium flex-nowrap">
+              {mainTabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <StatutoryTooltip 
+                    key={tab.id} 
+                    termId={tab.tooltipId}
+                    customTitle={tab.tooltipTitle}
+                    customContent={tab.tooltipContent}
                   >
-                    <Icon className={`w-4 h-4 ${tab.isActive ? tab.iconClass : 'text-slate-500'}`} />
-                    <span>{tab.label}</span>
-                    {tab.badge && (
-                      <span className={`text-[10px] px-2 py-0.2 rounded-full font-semibold ${tab.badgeClass || 'bg-slate-100 text-slate-800'}`}>
-                        {tab.badge}
-                      </span>
-                    )}
-                    {tab.count !== undefined && tab.count > 0 && (
-                      <span className="text-[10px] px-2 py-0.2 rounded-full font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                        {tab.count}
-                      </span>
-                    )}
-                  </Link>
-                </StatutoryTooltip>
-              );
-            })}
-          </nav>
+                    <Link
+                      href={tab.href}
+                      className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 sm:gap-2 transition-all select-none whitespace-nowrap text-xs flex-shrink-0 ${
+                        tab.isActive
+                          ? tab.activeClass
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 border border-transparent'
+                      }`}
+                    >
+                      <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${tab.isActive ? tab.iconClass : 'text-slate-500'}`} />
+                      <span>{tab.label}</span>
+                      {tab.badge && (
+                        <span className={`text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${tab.badgeClass || 'bg-slate-100 text-slate-800'}`}>
+                          {tab.badge}
+                        </span>
+                      )}
+                      {tab.count !== undefined && tab.count > 0 && (
+                        <span className="text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                          {tab.count}
+                        </span>
+                      )}
+                    </Link>
+                  </StatutoryTooltip>
+                );
+              })}
+            </nav>
 
-          {/* Sub-steps breadcrumb/chips when in tools mode */}
+            {/* Sub-steps breadcrumb/chips when in tools mode (Desktop View) */}
+            {isToolsActive && (
+              <div className="hidden lg:flex items-center gap-1 text-[11px] font-semibold bg-slate-100/80 px-2 py-1 rounded-lg border border-slate-200/80 flex-shrink-0">
+                <span className="text-slate-500 uppercase tracking-wider text-[10px] mr-1">
+                  {isHi ? 'चरण:' : 'Steps:'}
+                </span>
+                {workflowSteps.map((step) => (
+                  <StatutoryTooltip key={step.id} termId={step.termId} position="bottom">
+                    <Link
+                      href={step.href}
+                      className={`px-2 py-0.5 rounded transition-all whitespace-nowrap ${
+                        step.isActive
+                          ? 'bg-white text-slate-900 font-bold shadow-2xs border border-slate-200/80'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {step.label}
+                    </Link>
+                  </StatutoryTooltip>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Sub-steps Mobile Horizontal Strip (shown when in compliance tools on mobile screens) */}
           {isToolsActive && (
-            <div className="hidden sm:flex items-center gap-1 text-[11px] font-semibold bg-slate-100/80 px-2 py-1 rounded-lg border border-slate-200/80">
-              <span className="text-slate-500 uppercase tracking-wider text-[10px] mr-1">
+            <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar touch-scroll py-1.5 border-t border-slate-100 text-[11px] font-semibold">
+              <span className="text-slate-400 uppercase tracking-wider text-[9px] flex-shrink-0 font-bold pl-0.5">
                 {isHi ? 'चरण:' : 'Steps:'}
               </span>
               {workflowSteps.map((step) => (
-                <StatutoryTooltip key={step.id} termId={step.termId} position="bottom">
-                  <Link
-                    href={step.href}
-                    className={`px-2 py-0.5 rounded transition-all ${
-                      step.isActive
-                        ? 'bg-white text-slate-900 font-bold shadow-2xs border border-slate-200/80'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    {step.label}
-                  </Link>
-                </StatutoryTooltip>
+                <Link
+                  key={step.id}
+                  href={step.href}
+                  className={`px-2.5 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 text-[11px] ${
+                    step.isActive
+                      ? 'bg-slate-900 text-white font-bold shadow-2xs'
+                      : 'bg-slate-100/90 text-slate-600 hover:text-slate-900 hover:bg-slate-200/80 border border-slate-200/60'
+                  }`}
+                >
+                  {step.label}
+                </Link>
               ))}
             </div>
           )}

@@ -11,12 +11,12 @@ export const ModernFooter: React.FC = () => {
   const isHi = language === 'hi';
 
   return (
-    <footer className="w-full bg-white border-t border-slate-200 mt-auto text-xs text-slate-500">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+    <footer className="w-full bg-white border-t border-slate-200 mt-auto text-xs text-slate-500 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
         {/* Main Footer Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           {/* Column 1: Platform Brand & Mission */}
-          <div className="space-y-3 md:col-span-1">
+          <div className="space-y-3 sm:col-span-2 md:col-span-1">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
                 ⚖️
@@ -159,11 +159,11 @@ export const ModernFooter: React.FC = () => {
         </div>
 
         {/* Bottom Banner */}
-        <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
+        <div className="pt-4 sm:pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400 text-center sm:text-left">
           <p>
             © {new Date().getFullYear()} IP-SAKTI Sahayak • Smart India Hackathon (SIH 045). Statutory Intelligence Platform.
           </p>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
             <Link href="/?tab=history" className="hover:text-slate-600 transition-colors">
               {isHi ? 'सहेजे गए परामर्श' : 'Saved Consultations Vault'}
             </Link>

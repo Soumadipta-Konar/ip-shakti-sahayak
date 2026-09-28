@@ -131,19 +131,19 @@ export const ABSCalculator: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto w-full p-4 sm:p-6 space-y-6">
-      <div className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-6">
+    <div className="max-w-3xl mx-auto w-full p-2 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="p-4 sm:p-8 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
-              <Calculator className="w-5 h-5 text-amber-700" />
+            <div className="p-2 sm:p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 flex-shrink-0">
+              <Calculator className="w-4 h-4 sm:w-5 sm:h-5 text-amber-700" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 font-display">
+              <h2 className="text-lg sm:text-2xl font-black text-slate-900 font-display">
                 {isHi ? 'एनबीए / एसबीबी लाभ-साझाकरण (ABS) कैलकुलेटर' : 'NBA / SBB Access & Benefit Sharing (ABS) Calculator'}
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-[11px] sm:text-xs text-slate-500">
                 {isHi 
                   ? 'जैविक विविधता (संशोधन) अधिनियम, 2023 के तहत वैधानिक देयता की गणना' 
                   : 'Compute statutory benefit-sharing liability under the Biological Diversity (Amendment) Act, 2023'
@@ -164,9 +164,9 @@ export const ABSCalculator: React.FC = () => {
         </div>
 
         {/* Form Inputs */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 mb-1 sm:mb-1.5">
               {isHi ? 'वार्षिक एक्स-फैक्ट्री वाणिज्यिक कारोबार (₹ में)' : 'Annual Ex-Factory Commercial Turnover (in INR ₹)'}
             </label>
             <div className="relative">
@@ -183,9 +183,9 @@ export const ABSCalculator: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 mb-1 sm:mb-1.5">
                 {isHi ? 'आवेदक कानूनी श्रेणी' : 'Applicant Legal Entity Category'}
               </label>
               <select
@@ -200,7 +200,7 @@ export const ABSCalculator: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 mb-1 sm:mb-1.5">
                 {isHi ? 'जैव-संसाधन का स्रोत' : 'Biological Resource Provenance'}
               </label>
               <select
@@ -218,40 +218,40 @@ export const ABSCalculator: React.FC = () => {
         {/* Calculation Result */}
         <motion.div
           layout
-          className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-4 shadow-inner"
+          className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3 sm:space-y-4 shadow-inner"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div>
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+              <span className="text-[11px] sm:text-xs text-slate-500 font-bold uppercase tracking-wider">
                 {isHi ? 'वैधानिक ABS देयता दर' : 'Statutory ABS Liability Rate'}
               </span>
-              <p className="text-2xl font-black text-emerald-800 font-mono">{result.rate}</p>
+              <p className="text-xl sm:text-2xl font-black text-emerald-800 font-mono">{result.rate}</p>
             </div>
-            <div className="text-right">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+            <div className="sm:text-right">
+              <span className="text-[11px] sm:text-xs text-slate-500 font-bold uppercase tracking-wider">
                 {isHi ? 'अनुमानित वार्षिक लाभ-साझाकरण' : 'Estimated Annual Benefit Sharing'}
               </span>
-              <p className="text-2xl font-black text-slate-900 font-mono">
+              <p className="text-xl sm:text-2xl font-black text-slate-900 font-mono">
                 ₹ {result.amount.toLocaleString('en-IN')}
               </p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 shadow-2xs">
+          <div className="p-3 sm:p-3.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 shadow-2xs">
             <div className="flex items-center gap-1.5 font-bold text-amber-800 mb-1">
-              <Info className="w-3.5 h-3.5 text-amber-700" />
+              <Info className="w-3.5 h-3.5 text-amber-700 flex-shrink-0" />
               <span>{result.status}</span>
             </div>
-            <p className="text-slate-600 leading-relaxed">{result.description}</p>
+            <p className="text-slate-600 leading-relaxed text-[11px] sm:text-xs">{result.description}</p>
           </div>
         </motion.div>
 
         {/* Action Row */}
-        <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
+        <div className="pt-2 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
           <button
             type="button"
             onClick={handlePrintABS}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center gap-2 transition-all bg-white shadow-2xs cursor-pointer"
+            className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center gap-2 transition-all bg-white shadow-2xs cursor-pointer"
           >
             <Printer className="w-3.5 h-3.5 text-slate-500" />
             <span>{isHi ? 'गणना प्रिंट करें' : 'Print Calculation'}</span>
@@ -259,9 +259,10 @@ export const ABSCalculator: React.FC = () => {
 
           <Link
             href="/?tab=dossier"
-            className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+            className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs flex items-center gap-2 transition-all cursor-pointer"
           >
-            <span>{isHi ? 'इस गणना के साथ वैधानिक डोजियर में जाएं' : 'Proceed to Statutory Dossier with this Result'}</span>
+            <span>{isHi ? 'वैधानिक डोजियर में जाएं' : 'Proceed to Statutory Dossier'}</span>
+            <span className="hidden sm:inline">{isHi ? '' : 'with this Result'}</span>
             <ArrowRight className="w-3.5 h-3.5 text-indigo-300" />
           </Link>
         </div>

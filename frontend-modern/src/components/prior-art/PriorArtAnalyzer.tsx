@@ -186,7 +186,7 @@ export const PriorArtAnalyzer: React.FC = () => {
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8">
       {/* Top Banner & Statutory Identification */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-800">
@@ -277,7 +277,7 @@ export const PriorArtAnalyzer: React.FC = () => {
                   </span>
                 ))}
 
-                <div className="flex items-center gap-1 flex-1 min-w-[140px]">
+                <div className="flex items-center gap-1 flex-1 min-w-[90px]">
                   <input
                     type="text"
                     value={newIngredient}
@@ -419,19 +419,19 @@ export const PriorArtAnalyzer: React.FC = () => {
 
       {/* Analysis Results Card */}
       {priorArtAnalysis && (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-8 shadow-sm space-y-6">
           {/* Result Header & Gauge */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-5">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Statutory Examination Verdict
               </span>
-              <h2 className="text-xl font-bold text-slate-900 mt-0.5 font-display">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5 font-display">
                 {priorArtAnalysis.formulation_name}
               </h2>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
               <div className="text-right">
                 <div className="text-xs font-semibold text-slate-500">Patent Rejection Risk</div>
                 <div className="text-2xl font-black text-slate-900 font-mono">

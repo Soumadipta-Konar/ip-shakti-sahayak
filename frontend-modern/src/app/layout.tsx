@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Plus_Jakarta_Sans, Outfit, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { ModernHeader } from '@/components/layout/ModernHeader';
@@ -31,6 +31,13 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#0f172a',
+};
+
 export const metadata: Metadata = {
   title: 'IP-SAKTI Sahayak | Statutory Patent & Bio-Resource Intelligence Platform',
   description: 'Modern Enterprise Statutory Clearance & Legal Intelligence for Indian & Global Botanical Innovations: Section 3(p) TKDL Prior-Art Screening, BDA 2023 ABS Liabilities, and Deterministic AI Grounding.',
@@ -51,16 +58,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${plusJakarta.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
-      <body className="font-sans bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-100 selection:text-blue-900 bg-enterprise-mesh">
+    <html lang="en" className={`${inter.variable} ${plusJakarta.variable} ${outfit.variable} ${jetbrainsMono.variable} overflow-x-hidden`}>
+      <body className="font-sans bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-100 selection:text-blue-900 bg-enterprise-mesh overflow-x-hidden w-full max-w-full">
         <QueryProvider>
           {/* Sticky Modern Enterprise Navigation */}
-          <div className="print:hidden sticky top-0 z-40">
+          <div className="print:hidden sticky top-0 z-40 w-full">
             <ModernHeader />
           </div>
           
           {/* Main Workstation Canvas */}
-          <main id="main-content" className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col gap-6">
+          <main id="main-content" className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex flex-col gap-4 sm:gap-6 overflow-x-hidden">
             {children}
           </main>
 

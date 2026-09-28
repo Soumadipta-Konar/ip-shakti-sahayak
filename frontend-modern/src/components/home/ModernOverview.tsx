@@ -158,16 +158,16 @@ export const ModernOverview: React.FC<ModernOverviewProps> = ({ onSelectTab }) =
   return (
     <div className="space-y-8 animate-fade-in">
       {/* 1. Hero Command Section */}
-      <section className="relative overflow-hidden rounded-3xl bg-white border border-slate-200/80 shadow-md p-6 sm:p-10 lg:p-12">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-md p-4 sm:p-8 lg:p-12">
         {/* Multi-tonal ambient glow elements */}
         <div className="absolute top-0 right-0 -mt-16 -mr-16 w-96 h-96 bg-gradient-to-br from-indigo-100/60 via-violet-100/40 to-sky-100/40 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 -mb-16 w-80 h-80 bg-gradient-to-tr from-emerald-100/40 via-amber-100/30 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-4xl space-y-6">
+        <div className="relative z-10 max-w-4xl space-y-4 sm:space-y-6">
           {/* Badge Tag with Tooltip */}
           <StatutoryTooltip termId="workflow-steps">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 text-slate-100 text-xs font-bold tracking-wide shadow-xs cursor-help">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-slate-900 text-slate-100 text-[10px] sm:text-xs font-bold tracking-wide shadow-xs cursor-help">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>
                 {isHi ? 'वैधानिक जैव-संसाधन आसूचना मंच' : 'STATUTORY BIO-RESOURCE CLEARANCE & PATENT INTELLIGENCE'}
               </span>
@@ -175,15 +175,15 @@ export const ModernOverview: React.FC<ModernOverviewProps> = ({ onSelectTab }) =
           </StatutoryTooltip>
 
           {/* Headline */}
-          <div className="space-y-3">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.15] font-display">
+          <div className="space-y-2 sm:space-y-3">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.2] font-display">
               {isHi ? (
                 <>आयुर्वेदिक एवं वानस्पतिक नवाचारों के लिए <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 via-violet-600 to-emerald-600">वैधानिक मंजूरी मंच</span></>
               ) : (
                 <>Statutory Clearance & Legal AI for <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 via-violet-600 to-emerald-600">Botanical & Ayurvedic Innovations</span></>
               )}
             </h1>
-            <p className="text-base sm:text-lg text-slate-600 font-normal leading-relaxed max-w-3xl">
+            <p className="text-xs sm:text-base lg:text-lg text-slate-600 font-normal leading-relaxed max-w-3xl">
               {isHi ? (
                 'सीएसआईआर-टीकेडीएल के शास्त्रीय ग्रंथों, पेटेंट्स एक्ट 1970 की धारा 3(p)/3(e) एवं जैविक विविधता अधिनियम 2023 के तहत सत्यापित विधिक साक्ष्य एवं वैधानिक ग्राउंडिंग पर आधारित परामर्श।'
               ) : (
@@ -193,38 +193,40 @@ export const ModernOverview: React.FC<ModernOverviewProps> = ({ onSelectTab }) =
           </div>
 
           {/* Quick Assessment Launchpad */}
-          <div className="pt-2 max-w-2xl">
-            <form onSubmit={handleQuickSubmit} className="relative flex items-center">
-              <div className="absolute left-4 text-slate-400 pointer-events-none">
-                <Search className="w-5 h-5" />
+          <div className="pt-1 sm:pt-2 max-w-2xl">
+            <form onSubmit={handleQuickSubmit} className="relative flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-0">
+              <div className="relative flex-1 flex items-center">
+                <div className="absolute left-3.5 sm:left-4 text-slate-400 pointer-events-none">
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <input
+                  type="text"
+                  value={quickQuery}
+                  onChange={(e) => setQuickQuery(e.target.value)}
+                  placeholder={isHi 
+                    ? "वानस्पतिक घटक या फॉर्मूलेशन दर्ज करें..." 
+                    : "Enter botanical ingredients (e.g. Curcuma longa + Piper nigrum)..."
+                  }
+                  className="w-full pl-10 sm:pl-12 pr-4 sm:pr-36 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all shadow-inner"
+                />
               </div>
-              <input
-                type="text"
-                value={quickQuery}
-                onChange={(e) => setQuickQuery(e.target.value)}
-                placeholder={isHi 
-                  ? "वानस्पतिक घटक या फॉर्मूलेशन दर्ज करें (उदा. Curcuma longa + Piper nigrum)..." 
-                  : "Enter botanical ingredients or formulation (e.g. Curcuma longa + Piper nigrum for bioavailability)..."
-                }
-                className="w-full pl-12 pr-36 py-3.5 rounded-2xl bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all shadow-inner"
-              />
               <button
                 type="submit"
-                className="absolute right-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/20 flex items-center gap-1.5 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                className="sm:absolute sm:right-2 px-4 py-2.5 sm:py-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/20 flex items-center justify-center gap-1.5 cursor-pointer hover:scale-[1.02] active:scale-[0.98] flex-shrink-0"
               >
                 <span>{isHi ? 'जांच शुरू करें' : 'Verify Clearance'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </form>
-            <div className="text-[11px] text-slate-500 mt-2.5 pl-2 flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-slate-600">{isHi ? 'लोकप्रिय नमूने:' : 'Try popular queries:'}</span>
+            <div className="text-[10px] sm:text-[11px] text-slate-500 mt-2 sm:mt-2.5 pl-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <span className="font-semibold text-slate-600">{isHi ? 'लोकप्रिय नमूने:' : 'Popular:'}</span>
               <button 
                 type="button"
                 onClick={() => {
                   setPendingQuery('Ashwagandha + Brahmi synergistic cognitive formulation');
                   onSelectTab('copilot');
                 }}
-                className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer font-medium shadow-2xs"
+                className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer font-medium shadow-2xs text-[10px] sm:text-[11px]"
               >
                 Ashwagandha + Brahmi
               </button>
@@ -234,7 +236,7 @@ export const ModernOverview: React.FC<ModernOverviewProps> = ({ onSelectTab }) =
                   setPendingQuery('Form-III BDA approval for foreign patent filing');
                   onSelectTab('copilot');
                 }}
-                className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer font-medium shadow-2xs"
+                className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer font-medium shadow-2xs text-[10px] sm:text-[11px]"
               >
                 BDA Form-III
               </button>
@@ -244,7 +246,7 @@ export const ModernOverview: React.FC<ModernOverviewProps> = ({ onSelectTab }) =
                   setPendingQuery('Phytopharmaceutical drug Rule 122-E requirements');
                   onSelectTab('copilot');
                 }}
-                className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer font-medium shadow-2xs"
+                className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer font-medium shadow-2xs text-[10px] sm:text-[11px]"
               >
                 Phyto Rule 122-E
               </button>
@@ -338,17 +340,17 @@ export const ModernOverview: React.FC<ModernOverviewProps> = ({ onSelectTab }) =
       {/* 3. Dual Section: Statutory Precedents & Legal Terms Glossary */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Landmark Traditional Knowledge Revocations (2 Cols) */}
-        <section className="lg:col-span-2 rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-7 shadow-xs space-y-5">
+        <section className="lg:col-span-2 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-4 sm:p-7 shadow-xs space-y-4 sm:space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
                 <Award className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                <h3 className="text-sm sm:text-lg font-bold text-slate-900 leading-snug">
                   {isHi ? 'ऐतिहासिक पारंपरिक ज्ञान बचाव मिसालें' : 'Landmark Traditional Knowledge Precedents'}
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-[11px] sm:text-xs text-slate-500">
                   {isHi 
                     ? 'सीएसआईआर-टीकेडीएल द्वारा अंतरराष्ट्रीय पेटेंट कार्यालयों में सफल कानूनी बचाव' 
                     : 'Historical CSIR-TKDL defensive legal revocations across USPTO, EPO & IPO'
@@ -358,19 +360,19 @@ export const ModernOverview: React.FC<ModernOverviewProps> = ({ onSelectTab }) =
             </div>
           </div>
 
-          <div className="space-y-3.5">
+          <div className="space-y-3">
             {precedentCases.map((pc, idx) => (
               <StatutoryTooltip key={idx} termId={pc.termId}>
-                <div className={`p-4 rounded-2xl border transition-all cursor-pointer ${pc.accentBorder}`}>
+                <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer ${pc.accentBorder}`}>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
-                    <span className="font-bold text-sm text-slate-900">
+                    <span className="font-bold text-xs sm:text-sm text-slate-900">
                       {pc.title}
                     </span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-mono text-slate-600 bg-white px-2.5 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] sm:text-[11px] font-mono text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
                         {pc.jurisdiction}
                       </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${pc.tagBadge}`}>
+                      <span className={`text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-md border ${pc.tagBadge}`}>
                         {pc.result}
                       </span>
                     </div>
@@ -385,7 +387,7 @@ export const ModernOverview: React.FC<ModernOverviewProps> = ({ onSelectTab }) =
         </section>
 
         {/* Right Column: Key Statutory Clauses Explainer Quick Reference */}
-        <section className="rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-7 shadow-xs space-y-4 flex flex-col justify-between">
+        <section className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-4 sm:p-7 shadow-xs space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

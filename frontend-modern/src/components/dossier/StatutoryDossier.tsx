@@ -360,16 +360,16 @@ ${formsTable}
       {/* THE STATUTORY PRINTABLE DOSSIER (Rendered on screen & PDF) */}
       {/* ------------------------------------------------------------- */}
       {dossierData && (
-        <div className="bg-white rounded-2xl border border-slate-300 p-8 sm:p-12 shadow-md print:shadow-none print:border-none print:p-0 space-y-8 text-slate-900">
+        <div className="bg-white rounded-2xl border border-slate-300 p-4 sm:p-8 lg:p-12 shadow-md print:shadow-none print:border-none print:p-0 space-y-6 sm:space-y-8 text-slate-900 overflow-hidden">
           {/* Government Official Masthead */}
-          <div className="border-b-2 border-[#002147] pb-6 space-y-4">
+          <div className="border-b-2 border-[#002147] pb-4 sm:pb-6 space-y-3 sm:space-y-4">
             {/* UK GDS Enterprise Header Rule */}
             <div className="h-1.5 w-full bg-[#0b0c0c]" />
 
-            <div className="flex items-start justify-between gap-6 pt-2">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[#0b0c0c] text-white flex items-center justify-center shadow-xs flex-shrink-0">
-                  <Scale className="w-6 h-6 text-white" />
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-6 pt-2">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#0b0c0c] text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                  <Scale className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -506,8 +506,8 @@ ${formsTable}
               <span>Section 3: Mandatory Statutory Regulatory Filings Checklist</span>
             </h3>
 
-            <div className="overflow-x-auto rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs border-collapse">
+            <div className="overflow-x-auto rounded-xl border border-slate-200 touch-scroll touch-pan-x -mx-1 sm:mx-0 max-w-full">
+              <table className="min-w-[580px] w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-100 text-[#002147] border-b border-slate-200 font-bold">
                     <th className="py-2.5 px-3">Form Code</th>
