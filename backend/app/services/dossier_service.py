@@ -59,8 +59,8 @@ class DossierService:
         Synthesizes a certified statutory compliance dossier with SHA-256 digital verification hash.
         Includes all required NBA, Patent Office, and SBB compliance filings.
         """
-        now_str = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-        dossier_ref = f"DOS-AYUSH-{datetime.datetime.utcnow().strftime('%Y%m%d')}-{abs(hash(applicant_name + formulation_name)) % 10000:04d}"
+        now_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        dossier_ref = f"DOS-AYUSH-{datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d')}-{abs(hash(applicant_name + formulation_name)) % 10000:04d}"
 
         clf = classification_data or {}
         abs_info = abs_data or {}
@@ -68,9 +68,18 @@ class DossierService:
 
         triage_cat = clf.get("category") or "Classical Generic Ayurvedic Medicine (First Schedule)"
         reg_auth = clf.get("authority") or "State AYUSH Licensing Authority (SLA)"
-        risk_score = str(pa.get("patentability_risk_score", "75/100 (Moderate-High Bar)"))
-        if not risk_score.endswith("/100"):
-            risk_score = f"{risk_score}/100"
+        raw_score = pa.get("patentability_risk_score")
+        if raw_score is None:
+            risk_score = "75/100 (Moderate-High Bar)"
+        elif isinstance(raw_score, (int, float)):
+            risk_score = f"{int(raw_score)}/100"
+        else:
+            raw_str = str(raw_score).strip()
+            if "/" in raw_str:
+                risk_score = raw_str
+            else:
+                clean_num = raw_str.replace("%", "").strip()
+                risk_score = f"{clean_num}/100"
 
         pa_status = pa.get("overall_status") or "TKDL_MONITORED_ADMIXTURE"
 

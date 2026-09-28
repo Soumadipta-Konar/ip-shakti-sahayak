@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 from typing import Optional
 
 
@@ -14,6 +15,28 @@ class Settings(BaseSettings):
     GROQ_FAST_MODEL: str = "qwen/qwen3.8-27b"
     OPENAI_API_KEY: str = ""
     BHASHINI_API_KEY: str = ""
+
+    @field_validator("GROQ_MODEL", mode="before")
+    @classmethod
+    def normalize_groq_model(cls, v: str) -> str:
+        if not v:
+            return "openai/gpt-oss-120b"
+        v = v.strip()
+        if v in ("gpt-oss-120b", "openai-gpt-oss-120b"):
+            return "openai/gpt-oss-120b"
+        if v in ("gpt-oss-20b", "openai-gpt-oss-20b"):
+            return "openai/gpt-oss-20b"
+        return v
+
+    @field_validator("GROQ_FAST_MODEL", mode="before")
+    @classmethod
+    def normalize_groq_fast_model(cls, v: str) -> str:
+        if not v:
+            return "qwen/qwen3.8-27b"
+        v = v.strip()
+        if v in ("qwen3.8-27b", "qwen-3.8-27b", "qwen_3.8_27b"):
+            return "qwen/qwen3.8-27b"
+        return v
 
     # Embedding and Vector Ingestion Alignment
     EMBEDDING_MODEL_NAME: str = "BAAI/bge-small-en-v1.5"
@@ -36,6 +59,11 @@ class Settings(BaseSettings):
 
     # Data Sources
     RAW_DATA_DRIVE_URL: str = ""
+
+    # Server & Deployment
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
+    CORS_ORIGINS: str = "*"
 
     model_config = SettingsConfigDict(
         env_file=("backend/.env", ".env", "../.env", "../../.env"),

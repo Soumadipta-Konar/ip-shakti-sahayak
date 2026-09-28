@@ -5,7 +5,9 @@
 *An Enterprise Decision Support System Built for the Smart India Hackathon (SIH)*
 
 [![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel%20Free%20Tier-black?style=for-the-badge&logo=vercel)](DEPLOYMENT.md)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Render](https://img.shields.io/badge/Deploy-Render%20Free%20Tier-46E3B7?style=for-the-badge&logo=render)](DEPLOYMENT.md)
 [![Qdrant](https://img.shields.io/badge/Vector%20DB-Qdrant-red?style=for-the-badge)](https://qdrant.tech/)
 [![Neo4j](https://img.shields.io/badge/Graph%20DB-Neo4j-008CC1?style=for-the-badge&logo=neo4j)](https://neo4j.com/)
 [![LangGraph](https://img.shields.io/badge/Orchestrator-LangGraph-orange?style=for-the-badge)](https://langchain-ai.github.io/langgraph/)
@@ -22,6 +24,7 @@
 </div>
 
 ## 📑 Table of Contents
+0. [🚀 Quick Production Deployment Guide (Vercel + Render Free Tier)](DEPLOYMENT.md)
 1. [The Big Picture: What Is This Platform & Why Does It Matter?](#-the-big-picture-what-is-this-platform--why-does-it-matter)
 2. [The Real-World Story: Meet Ramesh the Ayurvedic Entrepreneur](#-the-real-world-story-meet-ramesh-the-ayurvedic-entrepreneur)
 3. [The 5 Hidden Crises This Platform Solves](#-the-5-hidden-crises-this-platform-solves)
@@ -276,7 +279,7 @@ Once you finish your analysis, the platform compiles all data into an official, 
 ### 5. 💬 AI Legal Copilot with Verified Citations (`/copilot`)
 A conversational assistant built specifically for Indian and international IP law:
 - **Jurisdiction Switcher**: Instantly toggle context between **India (IPO, BDA, Ayush)** and **International (PCT, WIPO Lex, TRIPS Agreement, Nagoya Protocol)**.
-- **Zero Hallucination Policy**: If the answer cannot be supported by statutory text in the database, the copilot explicitly declines to speculate rather than guessing.
+- **Strict Statutory Grounding Policy**: If the answer cannot be supported by statutory text in the database, the copilot explicitly declines to speculate rather than guessing.
 - **Clickable Statutory Badges**: Every response embeds interactive citations (e.g., `[The Patents Act 1970 § 3(p)]` or `[Biological Diversity Act 2002 § 6(1)]`). Clicking a badge opens the exact verbatim statutory text.
 - **Voice Input Ready**: Built-in microphone toggle integrated with Bhashini for regional Indian languages.
 

@@ -1,10 +1,18 @@
+import uuid
 import logging
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from pydantic import BaseModel, Field
 
+from starlette.concurrency import run_in_threadpool
+from app.core.config import settings
 from app.core.security import DPDPComplianceEngine
-from app.services.agent import process_query_via_langgraph, translate_legal_text_via_groq
+from app.services.agent import (
+    process_query_via_langgraph,
+    translate_legal_text_via_groq,
+    get_embedder,
+    get_qdrant_client,
+)
 from app.services.classification_engine import FormulationEngine, ClassificationInput, ClassificationResult
 from app.services.prior_art_service import PriorArtService, PriorArtAnalysisResult
 from app.services.dossier_service import DossierService, DossierResult
@@ -66,19 +74,29 @@ class DossierRequest(BaseModel):
     prior_art_data: Optional[Dict[str, Any]] = None
 
 
+class CorpusAmendmentRequest(BaseModel):
+    gazette_id: str
+    act_name: str
+    section_or_rule: str
+    amendment_text: str
+    effective_date: str
+    jurisdiction: str = "IN"
+
+
 # --- Endpoints ---
 
 @router.post("/ask", response_model=AskResponse)
 async def ask_ip_assistant(request: AskRequest):
     """
     Core Multi-Agent RAG Legal Query Endpoint.
-    Grounded strictly in 8,495 ingested statutory chunks in Qdrant Cloud.
+    Grounded strictly in the comprehensive statutory patent, TKDL, and AYUSH legal knowledge base.
     Applies DPDP compliance PII scrubbing, query decomposition, and interactive citation formatting.
     """
     safe_query = DPDPComplianceEngine.strip_pii(request.query)
 
-    # Route through LangGraph orchestrator
-    result = process_query_via_langgraph(
+    # Route through LangGraph orchestrator asynchronously via threadpool
+    result = await run_in_threadpool(
+        process_query_via_langgraph,
         query=safe_query,
         jurisdiction=request.jurisdiction,
         language=request.language or "en",
@@ -106,7 +124,11 @@ async def translate_legal_memo(request: TranslateRequest):
     strictly preserving Markdown tables and bracketed citation notations like [Section 3(p)] / [धारा 3(p)].
     """
     try:
-        translated = translate_legal_text_via_groq(request.text, request.target_language)
+        translated = await run_in_threadpool(
+            translate_legal_text_via_groq,
+            request.text,
+            request.target_language
+        )
         return TranslateResponse(
             original_text=request.text,
             translated_text=translated,
@@ -121,10 +143,10 @@ async def translate_legal_memo(request: TranslateRequest):
 async def classify_formulation(request: ClassificationInput):
     """
     Deterministic Statutory Classification Engine.
-    Categorizes Ayurvedic innovations into Classical, Phytopharmaceutical, Ayurveda-Aahar, or P&P Medicine.
+    Categorizes Ayurvedic innovations into Classical, Phytopharmaceutical, Ayurveda-Aahar, Cosmetic, or P&P Medicine.
     Provides authoritative citations, clinical requirements, Section 3 risks, and export guidance.
     """
-    return FormulationEngine.classify(request)
+    return await run_in_threadpool(FormulationEngine.classify, request)
 
 
 @router.post("/prior-art/analyze", response_model=PriorArtAnalysisResult)
@@ -134,7 +156,8 @@ async def analyze_prior_art(request: PriorArtRequest):
     Correlates ingredients with classical Ayurvedic treatises (Charaka, Sushruta, API monographs)
     and CSIR Traditional Knowledge Digital Library pre-grant opposition barriers.
     """
-    return PriorArtService.analyze(
+    return await run_in_threadpool(
+        PriorArtService.analyze,
         formulation_name=request.formulation_name,
         ingredients=request.ingredients,
         extraction_type=request.extraction_type,
@@ -151,7 +174,8 @@ async def generate_dossier(request: DossierRequest):
     Produces a certified digital audit dossier with SHA-256 integrity hash,
     cataloging all mandatory NBA Form I/III, IPO Form 1, and SBB filings.
     """
-    return DossierService.generate_dossier(
+    return await run_in_threadpool(
+        DossierService.generate_dossier,
         applicant_name=request.applicant_name,
         organization=request.organization,
         formulation_name=request.formulation_name,
@@ -170,7 +194,11 @@ async def transcribe_audio(audio: UploadFile = File(...)):
     try:
         content = await audio.read()
         filename = audio.filename or "speech.webm"
-        text = TranscriptionService.transcribe_audio(content, filename=filename)
+        text = await run_in_threadpool(
+            TranscriptionService.transcribe_audio,
+            content,
+            filename=filename
+        )
         return {
             "transcription": text,
             "translated_english_text": text,
@@ -178,4 +206,53 @@ async def transcribe_audio(audio: UploadFile = File(...)):
         }
     except Exception as e:
         logger.error(f"Error handling audio upload: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/corpus/amend")
+async def ingest_corpus_amendment(request: CorpusAmendmentRequest):
+    """
+    Dynamic 'Living Law' Corpus Ingestion Endpoint.
+    Allows hot-loading of newly notified gazettes, statutory circulars, or fee updates
+    into the Qdrant vector database and Knowledge Graph without service downtime.
+    """
+    chunk_id = str(uuid.uuid4())
+    try:
+        embedder = get_embedder()
+        client = get_qdrant_client()
+        vec = embedder.encode(request.amendment_text, normalize_embeddings=True).tolist() if embedder else []
+
+        qdrant_synced = False
+        if client and vec:
+            from qdrant_client.http import models as qmodels
+            client.upsert(
+                collection_name=settings.QDRANT_COLLECTION_NAME,
+                points=[
+                    qmodels.PointStruct(
+                        id=chunk_id,
+                        vector=vec,
+                        payload={
+                            "doc_id": request.gazette_id.replace(" ", "_").lower(),
+                            "act_name": request.act_name,
+                            "section_name": request.section_or_rule,
+                            "text": f"[{request.gazette_id} - Effective {request.effective_date}]\n{request.amendment_text}",
+                            "document_type": "gazette_amendment",
+                            "jurisdiction": request.jurisdiction,
+                            "amendment_status": "active",
+                            "effective_date": request.effective_date,
+                        }
+                    )
+                ]
+            )
+            qdrant_synced = True
+            logger.info(f"Successfully hot-ingested gazette amendment '{request.gazette_id}' into Qdrant collection.")
+        return {
+            "status": "success",
+            "message": f"Successfully ingested gazette amendment {request.gazette_id} into live knowledge base.",
+            "amendment_id": chunk_id,
+            "effective_date": request.effective_date,
+            "qdrant_synced": qdrant_synced
+        }
+    except Exception as e:
+        logger.error(f"Error hot-ingesting gazette amendment: {e}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -251,8 +251,8 @@ export const StatutoryTooltip: React.FC<StatutoryTooltipProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const { language } = useAppStore();
   const isHi = language === 'hi';
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLSpanElement>(null);
+  const popoverRef = useRef<HTMLSpanElement>(null);
 
   const def: GlossaryDefinition | undefined = termId ? STATUTORY_GLOSSARY[termId] : undefined;
   const title = customTitle || (def ? (isHi ? def.titleHi : def.titleEn) : 'Statutory Information');
@@ -282,7 +282,7 @@ export const StatutoryTooltip: React.FC<StatutoryTooltipProps> = ({
     : 'left-1/2 -translate-x-1/2';
 
   return (
-    <div
+    <span
       ref={triggerRef}
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
@@ -293,13 +293,13 @@ export const StatutoryTooltip: React.FC<StatutoryTooltipProps> = ({
       {children}
 
       {isOpen && (
-        <div
+        <span
           ref={popoverRef}
           role="tooltip"
-          className={`absolute z-50 ${positionClasses} ${alignClasses} w-72 sm:w-84 p-3.5 bg-white border-2 border-[#002147] shadow-2xl text-left pointer-events-none animate-in fade-in zoom-in-95 duration-150 select-none`}
+          className={`absolute z-50 ${positionClasses} ${alignClasses} w-72 sm:w-84 p-3.5 bg-white border-2 border-[#002147] shadow-2xl text-left pointer-events-none animate-in fade-in zoom-in-95 duration-150 select-none block`}
         >
           {/* Top Badge & Statute */}
-          <div className="flex items-center justify-between gap-1.5 pb-1.5 border-b border-[#e5e5e5] text-[10px]">
+          <span className="flex items-center justify-between gap-1.5 pb-1.5 border-b border-[#e5e5e5] text-[10px]">
             <span className="font-bold text-[#002147] bg-[#eef4f9] px-1.5 py-0.5 border border-[#1d70b8]/30 font-mono">
               {badge}
             </span>
@@ -308,35 +308,35 @@ export const StatutoryTooltip: React.FC<StatutoryTooltipProps> = ({
                 {statute}
               </span>
             )}
-          </div>
+          </span>
 
           {/* Title */}
-          <div className="mt-1.5 flex items-center gap-1.5">
+          <span className="mt-1.5 flex items-center gap-1.5">
             <Scale className="w-3.5 h-3.5 text-[#1d70b8] flex-shrink-0" />
-            <h4 className="text-xs font-bold text-[#002147] leading-tight">
+            <strong className="text-xs font-bold text-[#002147] leading-tight">
               {title}
-            </h4>
-          </div>
+            </strong>
+          </span>
 
           {/* What is it? */}
-          <div className="mt-1.5 text-[11px] text-[#0b0c0c] leading-relaxed">
+          <span className="mt-1.5 text-[11px] text-[#0b0c0c] leading-relaxed block">
             <span className="font-bold text-[#1d70b8]">{isHi ? 'यह क्या है: ' : 'What is it: '}</span>
             <span>{whatIsIt}</span>
-          </div>
+          </span>
 
           {/* Why it matters */}
           {whyItMatters && (
-            <div className="mt-1.5 pt-1.5 border-t border-[#f3f2f1] text-[10px] text-[#505a5f] leading-snug">
+            <span className="mt-1.5 pt-1.5 border-t border-[#f3f2f1] text-[10px] text-[#505a5f] leading-snug block">
               <span className="font-bold text-[#00703c]">{isHi ? 'महत्व: ' : 'Why it matters: '}</span>
               <span>{whyItMatters}</span>
-            </div>
+            </span>
           )}
 
           {/* Pointer triangle arrow */}
-          <div className={`absolute ${arrowClasses} ${arrowAlignClasses} w-0 h-0`} />
-        </div>
+          <span className={`absolute ${arrowClasses} ${arrowAlignClasses} w-0 h-0 block`} />
+        </span>
       )}
-    </div>
+    </span>
   );
 };
 
@@ -353,14 +353,14 @@ export const StatutoryHelpIcon: React.FC<StatutoryHelpIconProps> = ({
 }) => {
   return (
     <StatutoryTooltip termId={termId} className={className}>
-      <button
-        type="button"
+      <span
+        role="button"
         tabIndex={0}
         aria-label={label || 'Explain this legal term'}
         className="inline-flex items-center justify-center w-4 h-4 ml-1 rounded-full bg-[#f3f2f1] text-[#1d70b8] border border-[#b1b4b6] hover:bg-[#002147] hover:text-white hover:border-[#002147] text-[10px] font-bold cursor-help transition-all shadow-2xs select-none align-middle"
       >
         ?
-      </button>
+      </span>
     </StatutoryTooltip>
   );
 };

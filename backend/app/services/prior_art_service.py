@@ -115,6 +115,101 @@ HERBAL_DATABASE: Dict[str, Dict[str, Any]] = {
         "traditional_indications": ["Jvaraghna (Immunomodulatory)", "Rasayana", "Kandughna", "Trishnanigrahana"],
         "tkdl_codes": ["TKDL/AY/1205/TIN"],
         "active_markers": ["Tinosporide", "Cordifolioside A", "Berberine", "Magnoflorine"]
+    },
+    "black pepper": {
+        "botanical_name": "Piper nigrum L.",
+        "sanskrit_name": "Maricha (Piper nigrum)",
+        "classical_citations": [
+            "Charaka Samhita, Sutrasthana 4:10 (Deepaneeya & Shirovirechana Mahakashaya)",
+            "Sushruta Samhita, Sutrasthana 38:22 (Trikatu Formulation)",
+            "Ayurvedic Pharmacopoeia of India (API) Part I, Vol. III, Monograph 62"
+        ],
+        "traditional_indications": ["Deepana (Appetite stimulant)", "Shwasahara (Antiasthmatic)", "Krimighna (Anthelmintic)", "Bioavailability Enhancer (Yogavahi)"],
+        "tkdl_codes": ["TKDL/AY/1102/PIP", "TKDL/UN/2301/MAR"],
+        "active_markers": ["Piperine", "Chavicine", "Piperidine", "Piperetine"]
+    },
+    "maricha": {
+        "botanical_name": "Piper nigrum L.",
+        "sanskrit_name": "Maricha (Piper nigrum)",
+        "classical_citations": [
+            "Charaka Samhita, Sutrasthana 4:10 (Deepaneeya Mahakashaya)",
+            "Sushruta Samhita, Sutrasthana 38:22 (Trikatu)",
+            "Ayurvedic Pharmacopoeia of India (API) Part I, Vol. III, Monograph 62"
+        ],
+        "traditional_indications": ["Deepana", "Pachana", "Shwasahara", "Yogavahi (Bio-enhancer)"],
+        "tkdl_codes": ["TKDL/AY/1102/PIP"],
+        "active_markers": ["Piperine", "Chavicine", "Piperidine"]
+    },
+    "triphala": {
+        "botanical_name": "Compound of Terminalia chebula, Terminalia bellirica & Phyllanthus emblica",
+        "sanskrit_name": "Triphala Churna (Classical Formulation)",
+        "classical_citations": [
+            "Charaka Samhita, Chikitsasthana 1:2 (Rasayanadhyaya)",
+            "Sushruta Samhita, Sutrasthana 38:56 (Triphaladi Gana)",
+            "Sharangadhara Samhita, Madhyama Khanda 6:11",
+            "Ayurvedic Formulary of India (AFI) Part I, Section 7:33"
+        ],
+        "traditional_indications": ["Chakshushya (Vision tonic)", "Deepana-Pachana (Digestive)", "Virechana (Gentle laxative)", "Rasayana (Longevity)"],
+        "tkdl_codes": ["TKDL/AY/3301/TRI", "TKDL/UN/4901/TRP"],
+        "active_markers": ["Chebulinic acid", "Gallic acid", "Ellagic acid", "Corilagin", "Tannins"]
+    },
+    "shatavari": {
+        "botanical_name": "Asparagus racemosus Willd.",
+        "sanskrit_name": "Shatavari (Asparagus racemosus)",
+        "classical_citations": [
+            "Charaka Samhita, Sutrasthana 4:18 (Balya & Vayasthapana Mahakashaya)",
+            "Sushruta Samhita, Sutrasthana 38:4 (Vidarigandhadi Gana)",
+            "Ayurvedic Pharmacopoeia of India (API) Part I, Vol. IV, Monograph 88"
+        ],
+        "traditional_indications": ["Balya (Rejuvenative / Vitality)", "Stanyajanana (Galactagogue)", "Rasayana", "Pittashamana"],
+        "tkdl_codes": ["TKDL/AY/1504/SHA", "TKDL/UN/2210/ASP"],
+        "active_markers": ["Shatavarin IV", "Shatavarin I", "Sarsasapogenin", "Isoflavones"]
+    },
+    "licorice": {
+        "botanical_name": "Glycyrrhiza glabra L.",
+        "sanskrit_name": "Yashtimadhu / Mulethi (Glycyrrhiza glabra)",
+        "classical_citations": [
+            "Charaka Samhita, Sutrasthana 4:18 (Chardinigrahana & Vayasthapana)",
+            "Sushruta Samhita, Sutrasthana 38:36 (Kakolyadi Gana)",
+            "Ayurvedic Pharmacopoeia of India (API) Part I, Vol. I, Monograph 78"
+        ],
+        "traditional_indications": ["Kanthya (Throat soothing)", "Chakshushya (Ophthalmic)", "Vranaropaka (Gastric ulcer healing)", "Vayasthapana"],
+        "tkdl_codes": ["TKDL/AY/2401/GLY", "TKDL/UN/3302/LIC"],
+        "active_markers": ["Glycyrrhizin", "Glabridin", "Liquiritin", "Isoliquiritigenin"]
+    },
+    "yashtimadhu": {
+        "botanical_name": "Glycyrrhiza glabra L.",
+        "sanskrit_name": "Yashtimadhu (Glycyrrhiza glabra)",
+        "classical_citations": [
+            "Charaka Samhita, Sutrasthana 4:18",
+            "Ayurvedic Pharmacopoeia of India (API) Part I, Vol. I, Monograph 78"
+        ],
+        "traditional_indications": ["Kanthya", "Chakshushya", "Vranaropana"],
+        "tkdl_codes": ["TKDL/AY/2401/GLY"],
+        "active_markers": ["Glycyrrhizin", "Glabridin"]
+    },
+    "shallaki": {
+        "botanical_name": "Boswellia serrata Roxb. ex Colebr.",
+        "sanskrit_name": "Shallaki (Boswellia serrata)",
+        "classical_citations": [
+            "Sushruta Samhita, Sutrasthana 38:43 (Eladi Gana)",
+            "Bhavaprakasha Nighantu, Karpuradi Varga 33",
+            "Ayurvedic Pharmacopoeia of India (API) Part I, Vol. IV, Monograph 85"
+        ],
+        "traditional_indications": ["Sandhivata (Joint inflammation / Osteoarthritis)", "Shothahara (Anti-inflammatory)", "Asthisandhanakrit"],
+        "tkdl_codes": ["TKDL/AY/3802/BOS"],
+        "active_markers": ["Acetyl-11-keto-beta-boswellic acid (AKBA)", "11-keto-beta-boswellic acid", "Beta-boswellic acid"]
+    },
+    "boswellia": {
+        "botanical_name": "Boswellia serrata Roxb. ex Colebr.",
+        "sanskrit_name": "Shallaki (Boswellia serrata)",
+        "classical_citations": [
+            "Sushruta Samhita, Sutrasthana 38:43 (Eladi Gana)",
+            "Ayurvedic Pharmacopoeia of India (API) Part I, Vol. IV, Monograph 85"
+        ],
+        "traditional_indications": ["Sandhivata", "Shothahara", "Analgesic"],
+        "tkdl_codes": ["TKDL/AY/3802/BOS"],
+        "active_markers": ["AKBA", "Beta-boswellic acid"]
     }
 }
 

@@ -2,13 +2,20 @@ import os
 import re
 import json
 import logging
+import hashlib
+from concurrent.futures import ThreadPoolExecutor
 from typing import TypedDict, List, Dict, Any, Optional
 from pathlib import Path
 
 from app.core.config import settings
 from app.services.guardrails import NeMoGuardrails
+from app.services.knowledge_graph_service import KnowledgeGraphService
+from app.services.bhashini_service import BhashiniService
 
 logger = logging.getLogger(__name__)
+
+# --- In-Memory Translation Cache (Instant 0ms lookup for UI toggles) ---
+_TRANSLATION_CACHE: Dict[str, str] = {}
 
 # --- Qdrant & Embedder Singletons ---
 _EMBEDDER = None
@@ -16,14 +23,48 @@ _QDRANT_CLIENT = None
 _GROQ_CLIENT = None
 
 
+class FastEmbedderWrapper:
+    """
+    Lightweight ONNX embedding wrapper compatible with the SentenceTransformer interface.
+    Designed for memory-constrained free-tier cloud environments (e.g., Render Free Tier 512MB RAM).
+    """
+    def __init__(self, model):
+        self.model = model
+
+    def encode(self, texts, batch_size=None, normalize_embeddings=True):
+        import numpy as np
+        is_single = isinstance(texts, str)
+        input_list = [texts] if is_single else list(texts)
+        embeddings = list(self.model.embed(input_list))
+        if is_single:
+            return embeddings[0]
+        return np.array(embeddings)
+
+
 def get_embedder():
     global _EMBEDDER
     if _EMBEDDER is None:
-        import torch
-        from sentence_transformers import SentenceTransformer
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        logger.info(f"Loading embedding model: {settings.EMBEDDING_MODEL_NAME} on device: {device.upper()}...")
-        _EMBEDDER = SentenceTransformer(settings.EMBEDDING_MODEL_NAME, device=device)
+        # 1. Try fastembed (lightweight ONNX runtime, ~40MB RAM, zero PyTorch bloat)
+        try:
+            from fastembed import TextEmbedding
+            logger.info(f"Loading lightweight ONNX embedding model: {settings.EMBEDDING_MODEL_NAME} via fastembed...")
+            _EMBEDDER = FastEmbedderWrapper(TextEmbedding(model_name=settings.EMBEDDING_MODEL_NAME))
+            return _EMBEDDER
+        except Exception as fe_err:
+            logger.debug(f"fastembed not available or failed: {fe_err}")
+
+        # 2. Try sentence-transformers (PyTorch)
+        try:
+            import torch
+            from sentence_transformers import SentenceTransformer
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            logger.info(f"Loading embedding model: {settings.EMBEDDING_MODEL_NAME} via sentence-transformers on {device.upper()}...")
+            _EMBEDDER = SentenceTransformer(settings.EMBEDDING_MODEL_NAME, device=device)
+            return _EMBEDDER
+        except Exception as st_err:
+            logger.warning(f"sentence-transformers not available or failed: {st_err}")
+
+        logger.warning("No embedding engine available. Using fallback statutory corpus.")
     return _EMBEDDER
 
 
@@ -108,6 +149,10 @@ CANONICAL_ACT_URLS = {
     "Hague System": "https://www.wipo.int/hague/en/",
     "Budapest Treaty": "https://www.wipo.int/treaties/en/registration/budapest/",
     "AYUSH Examination Guidelines": "https://www.ipindia.gov.in",
+    "US FDA Botanical Drug Guidance": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/botanical-drug-development-guidance-industry",
+    "EMA THMPD Directive 2004/24/EC": "https://www.ema.europa.eu/en/human-regulatory/overview/herbal-medicinal-products",
+    "WIPO GRATK Treaty 2024": "https://www.wipo.int/diplomatic-conferences/en/genetic-resources/",
+    "CBD Nagoya Protocol": "https://www.cbd.int/abs/",
 }
 
 
@@ -123,6 +168,7 @@ class AgentState(TypedDict):
     session_metadata: Optional[Dict[str, Any]]
     decomposed_queries: List[str]
     retrieved_chunks: List[Dict[str, Any]]
+    graph_data: Optional[Dict[str, Any]]
     final_answer: str
     citations: List[Dict[str, Any]]
     confidence_score: float
@@ -144,7 +190,11 @@ def detect_query_language(query: str, requested_lang: Optional[str] = "en") -> s
     if re.search(r'[\u0900-\u097F]', query):
         return "hi"
 
-    # 2. Common Hindi / Hinglish particles
+    # 2. If user/frontend explicitly requested Hindi, honor user choice
+    if requested_lang and requested_lang.lower().startswith("hi"):
+        return "hi"
+
+    # 3. Common Hindi / Hinglish particles
     hindi_particles = {
         "kya", "kaise", "karna", "chahiye", "batao", "bataiye", "mera", "meri", "hum",
         "aap", "dawa", "aushadhi", "samjhao", "petent", "karein", "hoga", "hogi", "namaste",
@@ -157,13 +207,10 @@ def detect_query_language(query: str, requested_lang: Optional[str] = "en") -> s
     if len(matched) >= 2 or (len(cleaned_words) <= 5 and len(matched) >= 1):
         return "hi"
 
-    # 3. If query has English grammar words, strictly English
+    # 4. If query has English grammar words, strictly English
     english_markers = {"is", "can", "what", "how", "i", "a", "an", "the", "under", "for", "patent", "my", "to", "in", "does", "are"}
     if len(cleaned_words.intersection(english_markers)) >= 2:
         return "en"
-
-    if requested_lang and requested_lang.lower().startswith("hi"):
-        return "hi"
 
     return "en"
 
@@ -184,6 +231,7 @@ def decompose_query_node(state: AgentState) -> Dict[str, Any]:
     """
     Decomposes legal inquiries into targeted statutory search queries.
     If the query is conversational (e.g. greeting or reaction), preserves it directly.
+    Limits to 2-3 focused perspectives to drastically minimize vector retrieval latency.
     """
     query = state["query"]
     jurisdiction = state.get("jurisdiction", "IN")
@@ -195,28 +243,24 @@ def decompose_query_node(state: AgentState) -> Dict[str, Any]:
 
     decomposed = [query]
 
-    # Specific perspectives tailored to Ayurveda & IP
+    # Specific targeted statutory perspectives tailored to Ayurveda & IP
     if jurisdiction in ("INTL", "BOTH"):
-        decomposed.append(f"Patent Cooperation Treaty PCT genetic resources traditional knowledge disclosure {query}")
-        decomposed.append(f"Madrid Agreement trademark international registration botanical herbs {query}")
-        decomposed.append(f"WIPO Nagoya Protocol access benefit sharing genetic resources {query}")
+        decomposed.append(f"WIPO GRATK Treaty mandatory disclosure PCT Rule 51bis Nagoya Protocol CBD US FDA EMA {query}")
     else:
-        decomposed.append(f"Patents Act Section 3(p) Section 3(e) traditional knowledge mere admixture synergy {query}")
-        decomposed.append(f"Biological Diversity Act 2023 Section 6 NBA approval Form III Section 7 SBB {query}")
-        decomposed.append(f"Ayush Invention Examination Guidelines 2025 unexpected technical effect {query}")
-        decomposed.append(f"Drugs and Cosmetics Rules Rule 158-B Rule 122-E phytopharmaceutical {query}")
+        decomposed.append(f"Patents Act Section 3(p) Section 3(e) Section 3(d) Biological Diversity Act NBA Form III Rule 158-B {query}")
 
-    # If context has category or triage information, inject into search
+    # If context has category or triage information, inject targeted perspective
     if ctx.get("category"):
         decomposed.append(f"{ctx.get('category')} {ctx.get('statute', '')} {query}")
 
-    return {"decomposed_queries": decomposed, "intent": intent}
+    return {"decomposed_queries": decomposed[:3], "intent": intent}
 
 
 def retrieve_vectors_node(state: AgentState) -> Dict[str, Any]:
     """
     Executes dense semantic retrieval across legal chunks in Qdrant Cloud.
     Skips retrieval for conversational greetings or small-talk.
+    Uses batch embedding and parallelized multi-query execution for sub-second retrieval.
     """
     intent = state.get("intent", "LEGAL_QUERY")
     if intent != "LEGAL_QUERY":
@@ -231,52 +275,68 @@ def retrieve_vectors_node(state: AgentState) -> Dict[str, Any]:
         logger.warning("Vector DB or Embedder unavailable. Using fallback statutory corpus.")
         return {"retrieved_chunks": []}
 
-    all_hits: List[Dict[str, Any]] = []
     rrf_scores: Dict[str, float] = {}
     chunk_data_map: Dict[str, Dict[str, Any]] = {}
-
     k_constant = 60.0
 
-    for q_idx, sub_q in enumerate(decomposed):
+    # 1. Batch encode all sub-queries simultaneously for maximum CPU/GPU efficiency
+    query_texts = [
+        f"Represent this sentence for searching relevant passages: {sq}"
+        if "bge" in settings.EMBEDDING_MODEL_NAME.lower()
+        else sq
+        for sq in decomposed
+    ]
+
+    try:
+        vectors = embedder.encode(query_texts, batch_size=len(query_texts), normalize_embeddings=True)
+    except Exception as e:
+        logger.warning(f"Batch embedding failed: {e}. Falling back to single encodings.")
+        vectors = [embedder.encode(qt, normalize_embeddings=True) for qt in query_texts]
+
+    # 2. Execute parallel vector searches across Qdrant Cloud concurrently
+    def _search_qdrant(sub_q: str, vec: Any) -> List[Any]:
         try:
-            # Apply BGE instruction prefix if BGE model is active, and normalize
-            query_text = (
-                f"Represent this sentence for searching relevant passages: {sub_q}"
-                if "bge" in settings.EMBEDDING_MODEL_NAME.lower()
-                else sub_q
+            return client.search(
+                collection_name=settings.QDRANT_COLLECTION_NAME,
+                query_vector=vec.tolist() if hasattr(vec, "tolist") else vec,
+                limit=6,
+                with_payload=True,
+                timeout=5,
             )
-            vec = embedder.encode(query_text, normalize_embeddings=True).tolist()
-            search_kwargs: Dict[str, Any] = {
-                "collection_name": settings.QDRANT_COLLECTION_NAME,
-                "query_vector": vec,
-                "limit": 6,
-                "with_payload": True,
-            }
+        except Exception as ex:
+            logger.warning(f"Qdrant search failed for '{sub_q[:35]}': {ex}")
+            return []
 
-            hits = client.search(**search_kwargs)
+    with ThreadPoolExecutor(max_workers=min(len(decomposed), 4)) as executor:
+        future_to_idx = {
+            executor.submit(_search_qdrant, sq, vec): idx
+            for idx, (sq, vec) in enumerate(zip(decomposed, vectors))
+        }
+        for future in future_to_idx:
+            try:
+                hits = future.result()
+                for rank, hit in enumerate(hits):
+                    cid = str(hit.id)
+                    score = 1.0 / (k_constant + (rank + 1))
+                    rrf_scores[cid] = rrf_scores.get(cid, 0.0) + score
 
-            for rank, hit in enumerate(hits):
-                cid = str(hit.id)
-                score = 1.0 / (k_constant + (rank + 1))
-                rrf_scores[cid] = rrf_scores.get(cid, 0.0) + score
-
-                if cid not in chunk_data_map:
-                    payload = hit.payload or {}
-                    chunk_data_map[cid] = {
-                        "id": cid,
-                        "score": hit.score,
-                        "text": payload.get("text", ""),
-                        "doc_id": payload.get("doc_id", ""),
-                        "act_name": payload.get("act_name", "Statutory Act"),
-                        "section_name": payload.get("section_name", "General"),
-                        "section_title": payload.get("section_title", ""),
-                        "document_type": payload.get("document_type", "statute"),
-                        "source_file": payload.get("source_file", ""),
-                        "source_url": payload.get("source_url", ""),
-                        "jurisdiction": payload.get("jurisdiction", "IN"),
-                    }
-        except Exception as e:
-            logger.warning(f"Error executing vector search for sub-query '{sub_q[:40]}': {e}")
+                    if cid not in chunk_data_map:
+                        payload = hit.payload or {}
+                        chunk_data_map[cid] = {
+                            "id": cid,
+                            "score": hit.score,
+                            "text": payload.get("text", ""),
+                            "doc_id": payload.get("doc_id", ""),
+                            "act_name": payload.get("act_name", "Statutory Act"),
+                            "section_name": payload.get("section_name", "General"),
+                            "section_title": payload.get("section_title", ""),
+                            "document_type": payload.get("document_type", "statute"),
+                            "source_file": payload.get("source_file", ""),
+                            "source_url": payload.get("source_url", ""),
+                            "jurisdiction": payload.get("jurisdiction", "IN"),
+                        }
+            except Exception as e:
+                logger.warning(f"Threaded search error: {e}")
 
     # Sort chunks by fused RRF score
     sorted_chunk_ids = sorted(rrf_scores.keys(), key=lambda cid: rrf_scores[cid], reverse=True)
@@ -289,6 +349,22 @@ def retrieve_vectors_node(state: AgentState) -> Dict[str, Any]:
             top_chunks = intl_chunks + [c for c in top_chunks if c not in intl_chunks]
 
     return {"retrieved_chunks": top_chunks}
+
+
+def retrieve_graph_node(state: AgentState) -> Dict[str, Any]:
+    """
+    Executes relational multi-hop Knowledge Graph traversal across botanical entities,
+    statutory barriers (§ 3(p), § 3(e), § 3(d)), and regulatory bodies (NBA, SBB, AYUSH, WIPO).
+    Queries live Neo4j Cypher when available, with resilient in-memory statutory graph fallback.
+    """
+    intent = state.get("intent", "LEGAL_QUERY")
+    if intent != "LEGAL_QUERY":
+        return {"graph_data": None}
+
+    query = state["query"]
+    jurisdiction = state.get("jurisdiction", "IN")
+    graph_data = KnowledgeGraphService.query_graph_subgraph(query, jurisdiction=jurisdiction)
+    return {"graph_data": graph_data}
 
 
 def generate_answer_node(state: AgentState) -> Dict[str, Any]:
@@ -368,6 +444,8 @@ def generate_answer_node(state: AgentState) -> Dict[str, Any]:
                     max_tokens=500,
                 )
                 conv_answer = comp.choices[0].message.content or ""
+                if not conv_answer.strip():
+                    raise ValueError("Primary model returned empty conversational content.")
             except Exception as e:
                 logger.warning(f"Conversational synthesis via primary model failed: {e}")
                 try:
@@ -396,7 +474,7 @@ def generate_answer_node(state: AgentState) -> Dict[str, Any]:
                         "मैं **आईपी-शक्ति सहायक (IP-SAKTI Sahayak)** हूँ — भारतीय हर्बल नवप्रवर्तकों, वैद्यों, शोधकर्ताओं और पेटेंट अधिवक्ताओं के लिए "
                         "निर्मित एक उन्नत कानूनी निर्णय सहायता मंच।\n\n"
                         "मैं **भारतीय पेटेंट अधिनियम 1970**, **जैविक विविधता अधिनियम 2023**, "
-                        "**औषधि एवं प्रसाधन सामग्री नियम (नियम 158-B एवं 122-E)**, और **सीएसआईआर-टीकेडीएल** के 8,900 से अधिक वैधानिक कानूनी खंडों पर आधारित हूँ। आज मैं आपकी क्या सहायता कर सकता हूँ?"
+                        "**औषधि एवं प्रसाधन सामग्री नियम (नियम 158-B एवं 122-E)**, और **सीएसआईआर-टीकेडीएल** के आधिकारिक वैधानिक कानूनी प्रावधानों पर आधारित हूँ। आज मैं आपकी क्या सहायता कर सकता हूँ?"
                     )
                 elif intent == "GRATITUDE_CLOSING":
                     conv_answer = (
@@ -425,7 +503,7 @@ def generate_answer_node(state: AgentState) -> Dict[str, Any]:
                     conv_answer = (
                         "I am **IP-SAKTI Sahayak**, an AI-powered legal intelligence and decision support platform built specifically "
                         "for Indian herbal innovators, Vaidyas, researchers, and patent attorneys.\n\n"
-                        "I am grounded in over 8,900 statutory legal chunks including **The Patents Act, 1970**, the **Biological Diversity Act, 2023**, "
+                        "I am grounded in verified statutory legal authorities including **The Patents Act, 1970**, the **Biological Diversity Act, 2023**, "
                         "**Drugs & Cosmetics Rules (Rule 158-B & 122-E)**, and **TKDL** guidelines. How can I assist your innovation today?"
                     )
                 elif intent == "GRATITUDE_CLOSING":
@@ -566,14 +644,28 @@ def generate_answer_node(state: AgentState) -> Dict[str, Any]:
         "3. GROUNDING & CITATIONS: Seamlessly embed statutory references like [Section 3(p)], [Section 3(e)], [Section 6, BDA 2023], [Form 1], etc.\n"
         "4. TABLE FORMATTING MANDATE: When providing comparative tables or compliance matrices, always format as clean, standard Markdown tables where each row is on a separate line with a valid header separator row (|---|---|).\n"
         "5. TONE & COMPLETION: Authoritative, executive, commercial, and practical. Complete every section and table fully without cutting off.\n"
+        "6. STATUTORY DISCLAIMER & EMPIRICAL TESTING REQUIREMENT: Always clarify that overcoming Section 3(e) strictly requires empirical wet-lab proof (Combination Index CI < 1.0 via Chou-Talalay method), and that IP-SAKTI Sahayak provides pre-filing statutory intelligence rather than formal legal representation under the Advocates Act 1961.\n"
         f"{language_spec}"
     )
 
+    graph_data = state.get("graph_data") or {}
+    graph_str = ""
+    if graph_data and (graph_data.get("subgraph_triples") or graph_data.get("statutory_chains")):
+        chains_txt = "\n".join([f"- {c}" for c in graph_data.get("statutory_chains", [])])
+        strategies_txt = "\n".join([f"- {s}" for s in graph_data.get("recommended_overcoming_strategies", [])])
+        graph_str = (
+            f"\nRelational Knowledge Graph Insights (Graph-RAG Subgraph):\n"
+            f"Statutory Multi-Hop Chains:\n{chains_txt}\n"
+        )
+        if strategies_txt:
+            graph_str += f"Targeted Prosecution Overcoming Strategies from Knowledge Graph:\n{strategies_txt}\n"
+
     user_prompt = (
         f"Statutory Context from Ingested Corpus:\n{context_str}\n"
+        f"{graph_str}"
         f"{context_note}\n"
         f"User Inquiry:\n{query}\n\n"
-        "Provide a comprehensive, authoritative statutory evaluation following the mandated structure and citation format."
+        "Provide a comprehensive, authoritative statutory evaluation following the mandated structure and citation format. Ground your evaluation in both the vector corpus and relational Knowledge Graph paths."
     )
 
     groq_client = get_groq_client()
@@ -582,7 +674,7 @@ def generate_answer_node(state: AgentState) -> Dict[str, Any]:
 
     if groq_client:
         try:
-            # Try primary model: openai/gpt-oss-120b
+            # Try primary model: openai/gpt-oss-120b (1400 tokens gives comprehensive 5-section response in ~2.5s)
             completion = groq_client.chat.completions.create(
                 model=settings.GROQ_MODEL,
                 messages=[
@@ -590,13 +682,16 @@ def generate_answer_node(state: AgentState) -> Dict[str, Any]:
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0.15,
-                max_tokens=2500,
+                max_tokens=1400,
             )
             answer = completion.choices[0].message.content or ""
+            if not answer.strip():
+                raise ValueError("Primary model returned empty content.")
             logger.info("Successfully generated answer via Groq gpt-oss-120b")
         except Exception as e1:
             logger.warning(f"Groq primary model failed: {e1}. Trying fast fallback model: {settings.GROQ_FAST_MODEL}...")
             try:
+                # Fast model fallback: qwen/qwen3.8-27b (clamped strictly to 850 tokens to respect 1000 OTPM rate limit)
                 completion = groq_client.chat.completions.create(
                     model=settings.GROQ_FAST_MODEL,
                     messages=[
@@ -604,7 +699,7 @@ def generate_answer_node(state: AgentState) -> Dict[str, Any]:
                         {"role": "user", "content": user_prompt},
                     ],
                     temperature=0.15,
-                    max_tokens=2500,
+                    max_tokens=850,
                 )
                 answer = completion.choices[0].message.content or ""
                 logger.info(f"Successfully generated answer via Groq {settings.GROQ_FAST_MODEL}")
@@ -667,6 +762,49 @@ def generate_statutory_fallback(query: str, jurisdiction: str, chunks: List[Dict
 
     evidence_str = "\n".join(evidence_bullets) if evidence_bullets else "- **[Patents Act, Section 3(p)]**: Absolute statutory bar against patenting codified traditional knowledge."
 
+    disclaimer_en = (
+        "\n\n---\n"
+        "> **Statutory Pre-Filing Advisory Disclaimer:** IP-SAKTI Sahayak provides pre-filing intelligence and statutory triage under The Patents Act, 1970 and Biological Diversity Act, 2023. This is not a guarantee of patent grant or formal legal representation under the Advocates Act, 1961. Overcoming [Section 3(e)] strictly requires empirical wet-lab validation demonstrating a **Combination Index (CI < 1.0)** via the Chou-Talalay method, and phytopharmaceutical claims require minimum 4 standardized chromatographic markers under [Rule 122-E]."
+    )
+    disclaimer_hi = (
+        "\n\n---\n"
+        "> **वैधानिक पूर्व-फाइलिंग परामर्श अस्वीकरण (Disclaimer):** आईपी-शक्ति सहायक भारतीय पेटेंट अधिनियम 1970 और जैविक विविधता अधिनियम 2023 के तहत पूर्व-फाइलिंग कानूनी मार्गदर्शन प्रदान करता है। यह अधिवक्ता अधिनियम 1961 के तहत औपचारिक कानूनी प्रतिनिधित्व या पेटेंट अनुदान की कानूनी गारंटी नहीं है। [धारा 3(e)] की आपत्तियों को दूर करने के लिए प्रयोगशाला में चाउ-तालाले (Chou-Talalay) विधि द्वारा **कॉम्बिनेशन इंडेक्स (CI < 1.0)** का साक्ष्य तथा [नियम 122-E] के तहत कम से कम 4 मानकीकृत बायो-मार्कर साक्ष्य प्रस्तुत करना अनिवार्य है।"
+    )
+
+    if jurisdiction in ("INTL", "BOTH"):
+        if lang == "hi":
+            return (
+                f"### 1. अंतर्राष्ट्रीय वैधानिक ट्राइएज एवं निर्यात नियामक विश्लेषण (International Verdict)\n"
+                f"आपके प्रश्न *'{query}'* के अंतर्राष्ट्रीय क्षेत्राधिकार (**{jurisdiction}**) मूल्यांकन के अनुसार, भारतीय पारंपरिक ज्ञान या वानस्पतिक योगों को वैश्विक स्तर पर पेटेंट या औषधि के रूप में पंजीकृत कराने के लिए सख्त बहुपक्षीय संधियों का पालन करना अनिवार्य है।\n\n"
+                f"### 2. अंतर्राष्ट्रीय बौद्धिक संपदा एवं विनियामक संधियाँ (Global Regimes)\n"
+                f"- **[WIPO GRATK Treaty 2024]**: मई 2024 में स्वीकृत WIPO संधि के अनुसार, यदि कोई आविष्कार किसी देश के आनुवंशिक संसाधनों (Genetic Resources) या पारंपरिक ज्ञान पर आधारित है, तो पेटेंट आवेदक को मूल देश (Country of Origin - भारत) का अनिवार्य प्रकटीकरण (Mandatory Disclosure) करना होगा।\n"
+                f"- **[PCT Rule 51bis.1(g)]**: पेटेंट सहयोग संधि (PCT) के तहत राष्ट्रीय चरण (National Phase) में प्रवेश करते समय भारत से जैविक संसाधन प्राप्त करने का वैध प्रमाण और NBA अनापत्ति प्रस्तुत करनी होगी।\n"
+                f"- **[नागोया प्रोटोकॉल एवं CBD]**: पहुंच एवं लाभ साझाकरण (ABS) के तहत पूर्व सूचित सहमति (PIC) और परस्पर सहमत शर्तें (MAT) प्राप्त करना अनिवार्य है।\n"
+                f"- **[US FDA वानस्पतिक औषधि दिशानिर्देश (21 CFR 314.50)]**: अमेरिकी FDA कच्चे हर्बल चूर्ण का पेटेंट स्वीकार नहीं करता। इसके लिए मानकीकृत रासायनिक फिंगरप्रिंटिंग (HPLC/LC-MS), बैच-दर-बैच एकरूपता, और चरण 1/2/3 नैदानिक परीक्षण आवश्यक हैं।\n"
+                f"- **[EU EMA THMPD निर्देश 2004/24/EC]**: यूरोपीय संघ में सरलीकृत हर्बल पंजीकरण के लिए कम से कम 30 वर्षों के पारंपरिक औषधीय उपयोग (जिसमें कम से कम 15 वर्ष यूरोपीय संघ के भीतर हों) का ग्रंथसूची साक्ष्य देना होता है।\n\n"
+                f"### 3. रणनीतिक वैश्विक संरक्षण रोडमैप\n"
+                f"1. **भारतीय पूर्व-मंजूरी**: विदेश में पेटेंट दाखिल करने से पहले BDA 2023 की धारा 6 के तहत NBA फॉर्म III और पेटेंट अधिनियम की धारा 39 के तहत विदेशी फाइलिंग लाइसेंस (FFL) प्राप्त करें।\n"
+                f"2. **अंतर्राष्ट्रीय PCT आवेदन**: भारतीय प्राथमिकता तिथि के 12 महीनों के भीतर WIPO PCT आवेदन दाखिल करें।\n"
+                f"3. **ब्रांड संरक्षण**: मैड्रिड प्रोटोकॉल (Madrid Protocol) के माध्यम से अंतर्राष्ट्रीय ट्रेडमार्क सुरक्षित करें।"
+                f"{disclaimer_hi}"
+            )
+        else:
+            return (
+                f"### 1. International Statutory Triage & Cross-Border Advisory\n"
+                f"Based on your inquiry regarding *'{query}'* under jurisdiction **{jurisdiction}**, patenting or commercializing botanical/Ayurvedic innovations internationally requires navigating rigorous cross-border ABS compliance and foreign pharmaceutical frameworks.\n\n"
+                f"### 2. Cross-Border Statutory & Treaty Analysis\n"
+                f"- **[WIPO GRATK Treaty 2024]**: Under the landmark WIPO Treaty on Intellectual Property, Genetic Resources and Associated Traditional Knowledge adopted in May 2024, patent applicants globally are under a **mandatory legal obligation to disclose the country of origin (India)** and the source of any traditional knowledge used in the invention.\n"
+                f"- **[PCT Rule 51bis.1(g) & Article 8]**: Under the Patent Cooperation Treaty, designated national patent offices (USPTO, EPO, JPO) require declarations of origin and compliance with sovereign ABS clearances.\n"
+                f"- **[CBD Nagoya Protocol (Article 15)]**: Cross-border utilization of Indian bio-resources mandates verifiable Prior Informed Consent (PIC) and Mutually Agreed Terms (MAT) to prevent international biopiracy allegations.\n"
+                f"- **[US FDA Botanical Drug Guidance (21 CFR 314.50)]**: The US FDA requires rigorous Chemistry, Manufacturing, and Controls (CMC), batch-to-batch chromatographic fingerprint reproducibility (HPLC/LC-MS), and multi-batch clinical trials for whole herbal extracts where active single chemical entities cannot be isolated.\n"
+                f"- **[EU EMA THMPD Directive 2004/24/EC]**: Simplified registration for Traditional Herbal Medicinal Products requires documented bibliographic evidence of at least 30 years of traditional medicinal use (with at least 15 years within the European Union).\n\n"
+                f"### 3. International Prosecution Action Plan\n"
+                f"1. **Indian Sovereign Pre-Clearance**: Secure mandatory NBA approval via **Form III** under Section 6 of the Biological Diversity Act 2023, and request Foreign Filing License (FFL) under Section 39 of the Patents Act before overseas filing.\n"
+                f"2. **PCT International Filing**: File a Patent Cooperation Treaty (PCT) application within 12 months of the Indian priority date to preserve worldwide filing rights across 157 contracting states.\n"
+                f"3. **Standardized Extract Filing**: File composition-of-matter claims for standardized fractionated extracts rather than raw herbal combinations to satisfy US and European non-obviousness standards."
+                f"{disclaimer_en}"
+            )
+
     if lang == "hi":
         return (
             f"### 1. वैधानिक ट्राइएज एवं पेटेंट पात्रता सारांश (Executive Verdict)\n"
@@ -687,6 +825,7 @@ def generate_statutory_fallback(query: str, jurisdiction: str, chunks: List[Dict
             f"2. **सहक्रियात्मक प्रभाव (Synergy)**: हर्ब A + हर्ब B का संयुक्त सहक्रियात्मक प्रभाव प्रयोगशाला परीक्षणों द्वारा सिद्ध करें।\n"
             f"3. **ब्रांड एवं डिज़ाइन सुरक्षा**: ट्रेड मार्क्स अधिनियम 1999 और डिज़ाइन अधिनियम 2000 के तहत सुरक्षा सुनिश्चित करें।\n"
             f"4. **अंतर्राष्ट्रीय संरक्षण**: 12 माह के भीतर पीसीटी (PCT) अंतर्राष्ट्रीय आवेदन दाखिल करें।"
+            f"{disclaimer_hi}"
         )
 
     return (
@@ -712,23 +851,42 @@ def generate_statutory_fallback(query: str, jurisdiction: str, chunks: List[Dict
         f"3. **Brand & Packaging Exclusivity**: File immediate trademark registration under the **Trade Marks Act 1999** and novel delivery/packaging design under the **Designs Act 2000**.\n"
         f"4. **International Protection**: File an international **Patent Cooperation Treaty (PCT)** application within 12 months of Indian provisional filing.\n\n"
         f"**Relevant Corpus Findings:**\n{evidence_str}"
+        f"{disclaimer_en}"
     )
 
 
 def translate_legal_text_via_groq(text: str, target_language: str) -> str:
     """
-    Translates statutory analysis between English and Hindi using Groq LLM.
+    Translates statutory analysis between English and Hindi using Government Bhashini NMT
+    when available, or Groq LLM with strict statutory legal glossary preservation.
     Strictly preserves Markdown syntax, tables, and statutory citations like [Section 3(p)] / [धारा 3(p)].
+    Uses memory caching and safe token budgeting to prevent OTPM 429 rate limits and eliminate delay.
     """
     if not text or not text.strip():
         return text
+
+    is_to_hindi = target_language.lower().startswith("hi")
+    target_code = "hi" if is_to_hindi else "en"
+    source_code = "en" if is_to_hindi else "hi"
+
+    # Fast in-memory cache lookup (0ms instantaneous return)
+    cache_key = hashlib.md5(f"{target_code}::{text.strip()}".encode("utf-8")).hexdigest()
+    if cache_key in _TRANSLATION_CACHE:
+        logger.debug(f"Translation cache hit for key {cache_key[:8]}")
+        return _TRANSLATION_CACHE[cache_key]
+
+    # 1. Try Government of India Bhashini NMT pipeline first if configured
+    bhashini_translated = BhashiniService.translate_via_bhashini(text, target_lang=target_code, source_lang=source_code)
+    if bhashini_translated:
+        result = BhashiniService.preserve_legal_tokens(bhashini_translated)
+        _TRANSLATION_CACHE[cache_key] = result
+        return result
 
     groq_client = get_groq_client()
     if not groq_client:
         logger.warning("Groq client unavailable for translation.")
         return text
 
-    is_to_hindi = target_language.lower().startswith("hi")
     target_lang_str = "Hindi (Devanagari script)" if is_to_hindi else "English"
     source_lang_str = "English" if is_to_hindi else "Hindi"
 
@@ -739,10 +897,15 @@ def translate_legal_text_via_groq(text: str, target_language: str) -> str:
         f"CRITICAL TRANSLATION RULES:\n"
         f"1. PRESERVE ALL MARKDOWN: Keep all headers (###, ##), bold text (**text**), bullet points, and table structures exactly intact.\n"
         f"2. STATUTORY CITATIONS: Preserve statutory citations in bracket syntax, e.g., [Section 3(p)] -> [धारा 3(p) / Section 3(p)], [Section 3(e)] -> [धारा 3(e)], [Rule 158-B] -> [नियम 158-B], [Form 1] -> [फॉर्म 1] so interactive citation buttons keep working.\n"
-        f"3. ACCURACY & TONE: Maintain formal, authoritative legal terminology.\n"
+        f"3. ACCURACY & TONE: Maintain formal, authoritative legal terminology without semantic drift.\n"
         f"4. OUTPUT FORMAT: Output ONLY the translated text. Do NOT add any preamble, intro, conversational filler, or commentary."
     )
 
+    # Dynamic safe token calculation: ~1.6 tokens per word, clamped safely below Groq limits
+    word_count = len(text.split())
+    safe_primary_tokens = min(1800, max(500, int(word_count * 1.6)))
+
+    # Primary attempt: openai/gpt-oss-120b
     try:
         completion = groq_client.chat.completions.create(
             model=settings.GROQ_MODEL,
@@ -751,28 +914,49 @@ def translate_legal_text_via_groq(text: str, target_language: str) -> str:
                 {"role": "user", "content": text},
             ],
             temperature=0.1,
-            max_tokens=3000,
+            max_tokens=safe_primary_tokens,
         )
         translated = completion.choices[0].message.content or ""
+        if not translated.strip():
+            raise ValueError("Primary model returned empty translation.")
         if translated.strip():
-            return translated.strip()
+            clean_res = BhashiniService.preserve_legal_tokens(translated.strip())
+            final_res = BhashiniService.apply_glossary_en_to_hi(clean_res) if is_to_hindi else clean_res
+            _TRANSLATION_CACHE[cache_key] = final_res
+            return final_res
     except Exception as e1:
-        logger.warning(f"Groq primary model failed for translation: {e1}. Falling back to {settings.GROQ_FAST_MODEL}...")
-        try:
-            completion = groq_client.chat.completions.create(
+        logger.warning(f"Groq primary translation failed: {e1}. Falling back to {settings.GROQ_FAST_MODEL}...")
+
+    # Fallback attempt: qwen/qwen3.8-27b
+    # If text is long (>1400 chars) and contains markdown sections, translate section by section to avoid OTPM 1000 limit
+    try:
+        sections = re.split(r'(?=\n###\s+)', text) if len(text) > 1400 else [text]
+        translated_sections = []
+        for sec in sections:
+            if not sec.strip():
+                continue
+            sec_words = len(sec.split())
+            sec_tokens = min(800, max(250, int(sec_words * 1.5)))
+            comp = groq_client.chat.completions.create(
                 model=settings.GROQ_FAST_MODEL,
                 messages=[
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": text},
+                    {"role": "user", "content": sec},
                 ],
                 temperature=0.1,
-                max_tokens=3000,
+                max_tokens=sec_tokens,
             )
-            translated = completion.choices[0].message.content or ""
-            if translated.strip():
-                return translated.strip()
-        except Exception as e2:
-            logger.error(f"Groq fast model translation failed: {e2}")
+            sec_trans = comp.choices[0].message.content or sec
+            translated_sections.append(sec_trans.strip())
+
+        translated = "\n\n".join(translated_sections)
+        if translated.strip():
+            clean_res = BhashiniService.preserve_legal_tokens(translated.strip())
+            final_res = BhashiniService.apply_glossary_en_to_hi(clean_res) if is_to_hindi else clean_res
+            _TRANSLATION_CACHE[cache_key] = final_res
+            return final_res
+    except Exception as e2:
+        logger.error(f"Groq fast translation model also failed: {e2}")
 
     return text
 
@@ -786,11 +970,13 @@ def create_agent_graph():
 
     builder.add_node("decompose", decompose_query_node)
     builder.add_node("retrieve", retrieve_vectors_node)
+    builder.add_node("retrieve_graph", retrieve_graph_node)
     builder.add_node("generate", generate_answer_node)
 
     builder.set_entry_point("decompose")
     builder.add_edge("decompose", "retrieve")
-    builder.add_edge("retrieve", "generate")
+    builder.add_edge("retrieve", "retrieve_graph")
+    builder.add_edge("retrieve_graph", "generate")
     builder.add_edge("generate", END)
 
     return builder.compile()
@@ -826,12 +1012,14 @@ def process_query_via_langgraph(
         "query": query,
         "jurisdiction": jur,
         "language": language,
+        "intent": None,
         "detected_language": detected_lang,
         "session_id": session_id,
         "context": context,
         "session_metadata": session_metadata,
         "decomposed_queries": [],
         "retrieved_chunks": [],
+        "graph_data": None,
         "final_answer": "",
         "citations": [],
         "confidence_score": 0.95,

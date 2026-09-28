@@ -1,0 +1,22 @@
+# ==============================================================================
+# IP-SAKTI Sahayak - Offline Data Ingestion, OCR & Evaluation Dependencies
+# (For local batch indexing, PDF processing, Celery workers, and Ragas evaluation)
+# ==============================================================================
+
+-r requirements.txt
+
+# Document Parsing & PDF Extraction
+PyMuPDF==1.23.22 # fitz
+pdfplumber==0.11.0
+unstructured==0.12.5
+
+# Distributed Task Queue (Optional offline batching)
+celery==5.3.6
+redis==5.0.3
+
+# Offline Evaluation & Observability
+ragas==0.1.4
+langfuse==2.14.0
+
+# PyTorch SentenceTransformers (Full local weights)
+sentence-transformers==2.5.1

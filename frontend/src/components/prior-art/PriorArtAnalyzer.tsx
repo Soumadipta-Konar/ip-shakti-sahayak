@@ -195,7 +195,7 @@ export const PriorArtAnalyzer: React.FC = () => {
                   CSIR-TKDL Database &bull; Patents Act 1970
                 </span>
                 <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300">
-                  Zero Hallucination
+                  Statutorily Grounded
                 </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-[#002147] mt-1">

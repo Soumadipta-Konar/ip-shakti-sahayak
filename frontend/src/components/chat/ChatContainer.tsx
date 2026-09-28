@@ -404,8 +404,20 @@ export const ChatContainer: React.FC = () => {
 
       {/* 2. Chat Layout with Slide-Over Drawer for Case Context */}
       <div className="relative flex-1 flex overflow-hidden">
+        {/* Ashoka Stambh Sovereign Watermark Background (nearly half screen, very low opacity, non-distracting) */}
+        <div 
+          aria-hidden="true" 
+          className="absolute inset-0 pointer-events-none select-none flex items-center justify-center overflow-hidden z-0"
+        >
+          <img
+            src="/images/ashoka_emblem.svg"
+            alt=""
+            className="w-[48vw] max-w-[440px] max-h-[440px] object-contain opacity-[0.035] grayscale contrast-75"
+          />
+        </div>
+
         {/* Main Conversation Stream */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 min-h-[460px] max-h-[620px] bg-[#ffffff]">
+        <div className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 min-h-[460px] max-h-[620px] bg-transparent">
           {displayMessages.map((msg, msgIdx) => {
             const isShowingTranslation = !!msg.isShowingTranslation;
             const displayedText = (isShowingTranslation && msg.translatedText) ? msg.translatedText : msg.text;

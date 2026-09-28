@@ -15,7 +15,7 @@ class StatutoryCitation(BaseModel):
 class ClassificationInput(BaseModel):
     is_first_schedule: bool = False
     is_modified: bool = False
-    intended_use: Literal["medicinal", "food"] = "medicinal"
+    intended_use: Literal["medicinal", "food", "cosmetic"] = "medicinal"
     is_purified: bool = False
 
 
@@ -197,7 +197,68 @@ class FormulationEngine:
                 }
             )
 
-        # Category 4: Patent-or-Proprietary (P&P) Medicine
+        # Category 4: Ayurvedic Cosmetic / Topical Care
+        if data.intended_use == "cosmetic":
+            return ClassificationResult(
+                category="6. Ayurvedic Cosmetic / Topical Care",
+                title="Ayurvedic Cosmetic Formulation (D&C Rules Part XIII)",
+                classification_title="Ayurvedic Cosmetic / Topical Care",
+                patent_risk="Sec 3(p) & 3(e) Bar on Classical Ingredients. Protect novel delivery or composition.",
+                statute="Drugs & Cosmetics Rules 1945 Part XIII (Rules 138-150) & BIS IS 4707; Patents Act §3(e)",
+                authority="State Licensing Authority (Cosmetics Division) & CDSCO",
+                patentability="CONDITIONAL. Novel carrier matrix, liposomal/nano delivery, or proven synergistic cosmetic compositions patentable. Pure traditional herbal oils/pastes barred under §3(p).",
+                section_3_risk="CONDITIONAL_SEC_3E",
+                patentRiskDescription="Statutory bar under Section 3(p) for standard herbal pastes/oils. Overcome by novel delivery matrix (liposomes, emulgels) or proven synergistic skin permeation/anti-aging enhancement with comparative data.",
+                tkdl_status="Codified herbal topical remedies (Varnya, Keshya herbs) are documented in TKDL. Claims must distinguish from classical lepa/taila formulations.",
+                abs_posture="Prior intimation to State Biodiversity Board (SBB) under Section 7 of BDA 2023 for domestic commercial cosmetic production.",
+                clinical_requirements="Dermatological patch testing, skin irritation/sensitization studies, heavy metal & microbial tests conforming to BIS IS 4707 standards.",
+                claims_rule="Claims must focus on cosmetic appearance enhancement (e.g. skin radiance, hair nourishment) without crossing into drug claims (cure of eczema, alopecia). Novel carrier claims permitted.",
+                citations=[
+                    StatutoryCitation(
+                        id="cit-dca-part-xiii",
+                        act="Drugs and Cosmetics Rules, 1945",
+                        section="Part XIII (Rules 138-150)",
+                        description="Statutory standards, manufacture, and licensing of cosmetics in India.",
+                        snippet="Cosmetics containing Ayurvedic or herbal ingredients must conform to safety standards and label disclosures without misleading therapeutic claims.",
+                        url="https://cdsco.gov.in",
+                        jurisdiction="IN"
+                    ),
+                    StatutoryCitation(
+                        id="cit-bis-is4707",
+                        act="Bureau of Indian Standards IS 4707",
+                        section="IS 4707 (Part 1 & 2)",
+                        description="Classification of cosmetics and permissible ingredients in topical formulations.",
+                        snippet="Sets permissible chemical preservatives, colorants, microbiological thresholds, and heavy metal limits for cosmetic formulations.",
+                        url="https://www.standardsbis.in",
+                        jurisdiction="IN"
+                    ),
+                    StatutoryCitation(
+                        id="cit-pat-3e",
+                        act="The Patents Act, 1970",
+                        section="Section 3(e)",
+                        description="Admixture bar applicable to cosmetic combinations lacking synergistic proof.",
+                        snippet="A substance obtained by a mere admixture resulting only in the aggregation of the properties of the components thereof is not patentable.",
+                        url="https://www.ipindia.gov.in",
+                        jurisdiction="IN"
+                    ),
+                    StatutoryCitation(
+                        id="cit-bda-7",
+                        act="Biological Diversity Act, 2023",
+                        section="Section 7",
+                        description="SBB intimation requirement for bio-resource procurement for commercial cosmetics.",
+                        snippet="Commercial utilization of biological resources for cosmetic production requires prior notification to the State Biodiversity Board.",
+                        url="http://nbaindia.org",
+                        jurisdiction="IN"
+                    ),
+                ],
+                export_clearance={
+                    "US_FDA": "Cosmetic under FD&C Act; mandatory facility registration and product listing under MoCRA (Modernization of Cosmetics Regulation Act 2022).",
+                    "EU_EMA": "EU Cosmetic Regulation (EC) No 1223/2009 compliance (Cosmetic Product Safety Report - CPSR and CPNP notification).",
+                    "ASEAN": "ASEAN Cosmetic Directive (ACD) notification and safety dossier.",
+                }
+            )
+
+        # Category 5: Patent-or-Proprietary (P&P) Medicine
         return ClassificationResult(
             category="2. Patent-or-Proprietary (P&P) Ayurvedic Medicine",
             title="Patent or Proprietary (P&P) Ayurvedic Medicine",
