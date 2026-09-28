@@ -116,13 +116,13 @@ Vercel provides free global CDN hosting, automated SSL, and preview environments
 1. Go to the [Vercel Dashboard](https://vercel.com/dashboard) and click **Add New...** → **Project**.
 2. Select your GitHub repository.
 3. In the **Configure Project** screen:
-   - **Project Name**: `ip-sakti-sahayak` (or your choice)
+   - **Project Name**: `ip-sakti`
    - **Framework Preset**: `Next.js` (auto-detected)
    - **Root Directory**: Click **Edit** and choose:
      ```
      frontend-modern
      ```
-     *(This is critical because your repo is a monorepo containing both `backend` and `frontend-modern`).*
+     *(This tells Vercel where the Next.js app lives in your monorepo).*
 4. Expand **Environment Variables** and add:
    | Name | Value |
    |---|---|
@@ -134,7 +134,10 @@ Vercel provides free global CDN hosting, automated SSL, and preview environments
    > - You can include or omit `/api/v1`; `frontend-modern` automatically normalizes it.
 
 5. Click **Deploy**.
-6. Vercel will run `npm run build` and output your live production URL (e.g., `https://ip-sakti-sahayak.vercel.app`).
+6. Live Production URLs:
+   - **Primary URL**: [https://ip-sakti-ai.vercel.app](https://ip-sakti-ai.vercel.app)
+   - **Modern Alias**: [https://ip-sakti-modern.vercel.app](https://ip-sakti-modern.vercel.app)
+   - **Vercel Project**: [https://vercel.com/gyan-ranjan-s-projects/ip-sakti](https://vercel.com/gyan-ranjan-s-projects/ip-sakti)
 
 ---
 
